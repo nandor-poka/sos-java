@@ -6,7 +6,7 @@
 
 import os
 from setuptools import find_packages, setup
-from src._version import __version__
+from src.sos_java._version import __version__
 CURRENT_DIR = os.path.abspath(os.path.dirname(__file__))
 
 def get_long_description():
@@ -14,7 +14,7 @@ def get_long_description():
         return ld_file.read()
 
 setup(
-    name="sos-java",
+    name="sos-java-jl",
     version=__version__,
     description='SoS Notebook extension for JAVA',
     long_description=get_long_description(),
@@ -40,9 +40,9 @@ setup(
     packages=find_packages('src'),
     package_dir={'': 'src'},
     install_requires=[
-        'sos>=0.19.8', 'sos-notebook>=0.19.4', 
+        'sos>=0.21.5', 'sos-notebook>=0.21.7', 
     ],
     entry_points='''
 [sos_languages]
-Java = sos_java.kernel:sos_Java
+Java = sos_java.kernel:sos_java
 ''')
