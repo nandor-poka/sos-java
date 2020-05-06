@@ -1,11 +1,14 @@
 from ._version import __version__
 from sos.utils import short_repr, env
-import math
+import math, os
 import json
 init_statements = ''
+# global variables to be used for Java variable conversion
+_javaNumericTypes = ['Integer', 'Long', 'Float', 'Double', 'Short', 'Byte']
+_javaStringTypes = ['String', 'Char']
 
 # Converting to Java. Returns [<java type as string>, value]
-def convert_to_java(var_from_sos):
+def __convert_to_java(var_from_sos):
     if var_from_sos is None:
         return ['Void','NULL']
     if isinstance(var_from_sos, bool):
@@ -18,6 +21,7 @@ def convert_to_java(var_from_sos):
     if isinstance(var_from_sos, str):
         return ['String', '"'+var_from_sos+'"']
     if isinstance(var_from_sos, float):
+        # Checking for NaN, +/- infinity before returning actual value
         if math.isnan(var_from_sos):
             return ['Double', 'Double.NaN']
         if var_from_sos == float('-inf'):
@@ -27,10 +31,39 @@ def convert_to_java(var_from_sos):
         return ['double', repr(var_from_sos)]
     return None
 
+def __get_java_type(self, javaVar):
+    try:
+        javaVarType = self.sos_kernel.get_response(f'System.out.println(((Object){javaVar}).getClass().getSimpleName());', ('stream',), 
+        name=('stdout','stderr') )[0][1]['text']
+        javaVarValue = self.sos_kernel.get_response(f'System.out.println({javaVar});', ('stream',), 
+        name=('stdout', ' stderr') )[0][1]['text']
+        return {'type':javaVarType, 'value':javaVarValue}
+    except Exception as e:
+        self.sos_kernel.warn(f'Exception occured when determining Java type of {javaVar}. {e.__str__()}')
 
+def __convert_from_java_to_Python( self, javaVar):
+    javaVarTypeAndValue = __get_java_type(self, javaVar)
+    if javaVarTypeAndValue["type"] in _javaNumericTypes:
+        return f'{javaVar} = {javaVarTypeAndValue["value"]}\n'
+    if javaVarTypeAndValue["type"] in _javaStringTypes:
+        return f'{javaVar} = "{javaVarTypeAndValue["value"]}"\n'
+
+def __readSettings():
+    __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+    settingsFilePath = os.path.join(__location__, 'settings.json')
+    settings = None
+    try:
+        with open(settingsFilePath, 'r') as settingsFile:
+            settings = settingsFile.read()
+            settingsFile.close
+    except Exception as exception:
+            print(exception.__str__())
+    return json.loads(settings, encoding='utf-8')
         
 class sos_java:
-    background_color = '#ffaba3'
+    settings = __readSettings()
+    background_color = settings["color"] if settings else '#ffaba3'
+    allow_overwrite = settings["allowOverwrite"] if settings else False
     supported_kernels = {'Java': ['java']}
     options = {'assignment_pattern': r'^\s*([A-Za-z0-9\.]+)\s*(=).*$'}
     cd_command = ''
@@ -55,7 +88,7 @@ class sos_java:
             if changed:
                  self.sos_kernel.warn(f'Variable "{name}" from SoS to kernel {self.kernel_name} has been renamed to "{newname}" to follow language conventions')
             
-            type_and_value = convert_to_java(env.sos_dict[name]) 
+            type_and_value = __convert_to_java(env.sos_dict[name]) 
             if type_and_value is None:
                 self.sos_kernel.warn(f'Unsupported datatype {repr(env.sos_dict[name])} by {self.kernel_name}')
             else:
@@ -73,8 +106,15 @@ class sos_java:
                     sos_java.java_vars[newname] = type_and_value[0]
 
     def put_vars(self, items, to_kernel=None):
-        return None
-
+        if to_kernel in ['python3', 'Python3']:
+            pythonCmd = ''
+            try:
+                for varName in items:
+                    pythonCmd += __convert_from_java_to_Python(self, varName )
+            except Exception as e:
+                self.sos_kernel.warn(f'Exception occurred when transferring variables from Java to {to_kernel}. {e.__str__()}')
+            return pythonCmd
+            
     def expand(self, text, sigil):
         return None
     
@@ -82,4 +122,4 @@ class sos_java:
         return None
 
     def sessioninfo(self):
-        return None
+        return f'Kernel: {self.kernel_name},color: {self.background_color} settings: {self.settings}'
