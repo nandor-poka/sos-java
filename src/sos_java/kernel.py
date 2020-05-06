@@ -115,7 +115,6 @@ class sos_java:
                     sos_java.java_vars[newname] = type_and_value[0]
 
     def put_vars(self, items, to_kernel=None):
-        print (items)
         if not items:
             return None
         if to_kernel in ['python3', 'Python3']:
@@ -136,7 +135,29 @@ class sos_java:
             return dictToSos
             
     def expand(self, text, sigil):
-        return None
+        if sigil != '{ }':
+            from sos.parser import replace_sigil
+            text = replace_sigil(text, sigil)
+        tmpExp = text.split('{')
+        javaExpressions = []
+        for exp in tmpExp:
+            if '}' in exp:
+                javaExpressions.append(exp.split('}')[0])
+        javaResults = []
+        try:
+            for exp in javaExpressions:
+                javaResults.append(self.sos_kernel.get_response(
+                    f'System.out.println({exp});', ('stream',), name=('stdout', ' stderr') )[0][1]["text"])
+            
+            for index in range(0, len(javaResults)):
+                text = text.replace(javaExpressions[index],javaResults[index])
+            result = text.replace('{', '').replace('}','')
+            return result
+        except Exception:
+            err_msg = self.sos_kernel.get_response(
+               f'System.out.println({text});', ('stream',), name=('stdout',))[0][1]['text']
+            self.sos_kernel.warn(f'Failed to expand "{text}": {err_msg}')
+            return text
     
     def preview(self, item):
         javaVarTypeAndValue = _get_java_type_and_value(self,item)
