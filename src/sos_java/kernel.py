@@ -150,9 +150,9 @@ class sos_java:
                     f'System.out.println({exp});', ('stream',), name=('stdout', ' stderr') )[0][1]["text"])
             
             for index in range(0, len(javaResults)):
-                text = text.replace(javaExpressions[index],javaResults[index])
-            result = text.replace('{', '').replace('}','')
-            return result
+                text = text.replace('{'+javaExpressions[index]+'}',javaResults[index])
+            
+            return text
         except Exception:
             err_msg = self.sos_kernel.get_response(
                f'System.out.println({text});', ('stream',), name=('stdout',))[0][1]['text']
