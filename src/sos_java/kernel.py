@@ -1,35 +1,49 @@
 from ._version import __version__
 from sos.utils import short_repr, env
 import math, os
+import numpy as np
 import json
 init_statements = ''
 # global variables to be used for Java variable conversion
 _javaNumericTypes = ['Integer', 'Long', 'Float', 'Double', 'Short', 'Byte']
 _javaStringTypes = ['String', 'Char']
 
-# Converting to Java. Returns [<java type as string>, value]
-def _convert_to_java(var_from_sos):
-    if var_from_sos is None:
-        return ['Void','NULL']
-    if isinstance(var_from_sos, bool):
-        return ['boolean','true'] if var_from_sos else ['boolean','false']
-    if isinstance(var_from_sos, int):
-        # Differentiate between 32-bit and 64-bit integers to avoid over / underflow
-        if var_from_sos < -2^31 or var_from_sos > 2^31-1:
+def _convert_None_to_Java(var_from_sos):
+     return ['Void','NULL']
+def _convert_Integers_to_Java(var_from_sos):
+    if var_from_sos < -2^31 or var_from_sos > 2^31-1:
             return ['long', repr(var_from_sos)]    
-        return ['int', repr(var_from_sos)]
-    if isinstance(var_from_sos, str):
-        return ['String', '"'+var_from_sos+'"']
-    if isinstance(var_from_sos, float):
-        # Checking for NaN, +/- infinity before returning actual value
-        if math.isnan(var_from_sos):
-            return ['Double', 'Double.NaN']
-        if var_from_sos == float('-inf'):
-            return ['Double', 'Double.NEGATIVE_INFINITY']
-        if var_from_sos == float('inf'):
-            return ['Double', 'Double.POSITIVE_INFINITY']
-        return ['double', repr(var_from_sos)]
-    return None
+    return ['int', repr(var_from_sos)]
+
+def _convert_bool_to_Java(var_from_sos):
+    return ['boolean','true'] if var_from_sos else ['boolean','false']
+
+def _convert_string_to_Java(var_from_sos):
+    return ['String', '"'+var_from_sos+'"']
+
+def _convert_float_to_Java(var_from_sos):
+    # Checking for NaN, +/- infinity before returning actual value
+    if math.isnan(var_from_sos):
+        return ['Double', 'Double.NaN']
+    if var_from_sos == float('-inf'):
+        return ['Double', 'Double.NEGATIVE_INFINITY']
+    if var_from_sos == float('inf'):
+        return ['Double', 'Double.POSITIVE_INFINITY']
+    return ['double', repr(var_from_sos)]
+
+# Dict that maps python types to functions that will do the conversions
+_typeToConverterSwitch = {
+    None: _convert_None_to_Java,
+    bool: _convert_bool_to_Java,
+    np.bool: _convert_bool_to_Java,
+    int: _convert_Integers_to_Java,
+    np.int8: _convert_Integers_to_Java,
+    np.int16: _convert_Integers_to_Java,
+    np.int32: _convert_Integers_to_Java,
+    np.int64: _convert_Integers_to_Java,
+    str: _convert_string_to_Java,
+    float: _convert_float_to_Java
+}
 
 def _get_java_type_and_value(self, javaVar):
     try:
@@ -96,8 +110,8 @@ class sos_java:
                 changed = True 
             if changed:
                  self.sos_kernel.warn(f'Variable "{name}" from SoS to kernel {self.kernel_name} has been renamed to "{newname}" to follow language conventions')
-            
-            type_and_value = _convert_to_java(env.sos_dict[name]) 
+            converter = _typeToConverterSwitch[type(env.sos_dict[name])]
+            type_and_value = converter(env.sos_dict[name]) if converter else None
             if type_and_value is None:
                 self.sos_kernel.warn(f'Unsupported datatype {repr(env.sos_dict[name])} by {self.kernel_name}')
             else:
