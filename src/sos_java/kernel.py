@@ -36,22 +36,42 @@ def _convert_string_to_Java(self, var_from_sos, varName):
     return ['String', '"'+var_from_sos+'"']
 
 def _convert_tuple_to_Java(self, var_from_sos, varName):
+    if not _check_type_homogeneity_in_collection(var_from_sos):
+        print(f'Java does not support collections (eg. Sets, Lists, Maps) with heterogenous types.')
+        return None
+    # At this point the tuple is homogenous at the first level of elements, thus the 1st element type applies to all
     converter = _typeToConverterSwitch[type(var_from_sos[0])]
-    rawType = converter(self,var_from_sos[0], 'firstElement' )[0]
-    elementType = _Java_primitive_to_BoxingClass[rawType] if rawType in ('int', 'float', 'double', 'Byte') else rawType
-    homogenCollection = _check_type_homogeneity_in_collection(var_from_sos)
-    if not homogenCollection:
-        print(f'Java does not support collections (eg. Sets, Lists, Maps) with heterogenous types. Elements of {varName} will be saved as String in Java.') 
-        elementType = 'String'     
-    setInitString = f'new HashSet<{elementType}>(Arrays.asList('
-    for element in var_from_sos:
-        converter = _typeToConverterSwitch[type(element)]
-        elementValue = converter(self, element, varName )[1]
-        setInitString += f'{elementValue},'
-    setInitString = setInitString.rstrip(',')
-    setInitString += '))'
-    #converter = _typeToConverterSwitch[type(var_from_sos[0])]
-    return [f'HashSet<{elementType}>', setInitString]
+    # Non-collection types can be converted directly, this means that the tuple is a tuple of primitives (more generally non collection type)
+    if type(var_from_sos[0])not in (tuple, list, dict):
+        # Primitive Java numeric types need to be converted to their Boxing type. Eg. int -> Integer.
+        rawTypeInJava = converter(self,var_from_sos[0], 'firstElement' )[0]
+        elementTypeInJava = _Java_primitive_to_BoxingClass[rawTypeInJava] if rawTypeInJava in ('int', 'float', 'double', 'byte') else rawTypeInJava
+        setInitString = f'new HashSet<{elementTypeInJava}>()'+'{{'    
+        for element in var_from_sos:
+            conversion = converter(self, element, varName )
+            elementValue = conversion[1]
+            setInitString += f'add({elementValue});'
+        setInitString += '}}'
+        return [f'HashSet<{elementTypeInJava}>', setInitString]
+    else:
+        for index in range(0, len(var_from_sos)-1):
+            if type(var_from_sos[index]!=type(var_from_sos[index+1])):
+                print(f'Java does not support collections (eg. Sets, Lists, Maps) with heterogenous types.')
+                return None
+        # in this case the original tuple contained other collection(s). Eg tuple of tuples
+        setInitString = f'new HashSet<T>()'+'{{'  
+        for element in var_from_sos:
+            conversion = converter(self, element, varName )
+            if conversion == None:
+                break
+            elementTypeInJava = conversion[0]
+            elementValue = conversion[1]
+            setInitString += f'add({elementValue});'
+        if conversion == None:
+            return None
+        setInitString += '}}'
+        setInitString = setInitString.replace('<T>',f'<{elementTypeInJava}>')
+        return [f'HashSet<{elementTypeInJava}>', setInitString]
 
 def _convert_float_to_Java(var_from_sos):
     # Checking for NaN, +/- infinity before returning actual value
