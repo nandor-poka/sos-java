@@ -3,11 +3,89 @@ from sos.utils import short_repr, env
 import math, os
 import numpy as np
 import json
-init_statements = ''
+init_statements = '''
+    public String getJavaArrayValues(int[] array){
+        String values = "";
+        for (int i=0;i<array.length;++i){
+            values += String.valueOf(array[i])+",";
+        }
+        values = values.substring(0, values.length()-1);
+        return values;
+    }
+    
+    public String getJavaArrayValues(byte[] array){
+        String values = "";
+        for (int i=0;i<array.length;++i){
+            values += String.valueOf(array[i])+",";
+        }
+        values = values.substring(0, values.length()-1);
+        return values;
+    }
+
+    public String getJavaArrayValues(short[] array){
+        String values = "";
+        for (int i=0;i<array.length;++i){
+            values += String.valueOf(array[i])+",";
+        }
+        values = values.substring(0, values.length()-1);
+        return values;
+    }
+
+    public String getJavaArrayValues(float[] array){
+        String values = "";
+        for (int i=0;i<array.length;++i){
+            values += String.valueOf(array[i])+",";
+        }
+        values = values.substring(0, values.length()-1);
+        return values;
+    }
+    
+    public String getJavaArrayValues(double[] array){
+        String values = "";
+        for (int i=0;i<array.length;++i){
+            values += String.valueOf(array[i])+",";
+        }
+        values = values.substring(0, values.length()-1);
+        return values;
+    }
+        public String getJavaArrayValues(long[] array){
+        String values = "";
+        for (int i=0;i<array.length;++i){
+            values += String.valueOf(array[i])+",";
+        }
+        values = values.substring(0, values.length()-1);
+        return values;
+    }
+    
+    public String getJavaArrayValues(boolean[] array){
+        String values = "";
+        for (int i=0;i<array.length;++i){
+            if (array[i]){
+                values += "True,";
+            }else{
+                values += "False,";
+            }
+        }
+        values = values.substring(0, values.length()-1);
+        return values;
+    }
+    
+    public String getJavaArrayValues(String[] array){
+        String values = "";
+        for (int i=0;i<array.length;++i){
+            values += "'"+array[i]+"',";
+        }
+        values = values.substring(0, values.length()-1);
+        return values;
+    }
+'''
 
 # global variables to be used for Java variable conversion
 _javaNumericTypes = ['Integer', 'Long', 'Float', 'Double', 'Short', 'Byte']
 _javaStringTypes = ['String', 'Char']
+_javaMapTypes = ['Map', 'ConcurrentHashMap', 'ConcurrentSkipListMap', 'EnumMap', 'HashMap', 'LinkedHashMap' 'IdentityHashMap', 'TreeMap', 'WeakHashMap']
+_javaSetTypes = ['ConcurrentSkipListSet', 'CopyOnWriteArraySet', 'EnumSet', 'HashSet', 'LinkedHashSet','TreeSet']
+_javaListTypes = ['AbstractSequentialList', 'LinkedList', 'ArrayList', 'ObservableListBase', 'Vector', 'Stack']
 
 # dict used as 'switch' to convert primitive numeric Java types to ther boxing class
 _Java_primitive_to_BoxingClass = {
@@ -44,7 +122,7 @@ def _convert_tuple_to_Java(self, var_from_sos, varName):
         print(f'Java does not support collections (eg. Sets, Lists, Maps) with heterogenous types.')
         return None
     # At this point the tuple is homogenous at the first level of elements, thus the 1st element type applies to all
-    converter = _typeToConverterSwitch[type(var_from_sos[0])]
+    converter = _typeToConverterSwitchPythonToJava[type(var_from_sos[0])]
     # Non-collection types can be converted directly, this means that the tuple is a tuple of primitives (more generally non collection type)
     if type(var_from_sos[0])not in (tuple, list, dict):
         # Primitive Java numeric types need to be converted to their Boxing type. Eg. int -> Integer.
@@ -100,8 +178,8 @@ def _convert_dict_to_Java(self, var_from_sos, varName):
     items_iterator = iter(items)
     fistItem = next(items_iterator)
     # At this point the map is homogenous at the first level of elements, thus the 1st element type applies to all
-    keys_converter = _typeToConverterSwitch[type(fistItem[0])]
-    values_converter = _typeToConverterSwitch[type(fistItem[1])]
+    keys_converter = _typeToConverterSwitchPythonToJava[type(fistItem[0])]
+    values_converter = _typeToConverterSwitchPythonToJava[type(fistItem[1])]
     if type(fistItem[0]) not in (tuple, list, dict):
          # Primitive Java numeric types need to be converted to their Boxing type. Eg. int -> Integer.
         keys_rawTypeInJava = keys_converter(self,fistItem[0], varName )[0]
@@ -125,7 +203,7 @@ def _convert_list_to_Java(self, var_from_sos, varName):
         self.sos_kernel.warn(f'Java does not support collections (eg. Sets, Lists, Maps) with heterogenous types. Keys in {varName} are of not the same types.')
         return None
     # At this point the list is homogenous at the first level of elements, thus the 1st element type applies to all
-    converter = _typeToConverterSwitch[type(var_from_sos[0])]
+    converter = _typeToConverterSwitchPythonToJava[type(var_from_sos[0])]
     # Primitive Java numeric types need to be converted to their Boxing type. Eg. int -> Integer.
     rawTypeInJava = converter(self,var_from_sos[0], varName )[0]
     elementTypeInJava = _Java_primitive_to_BoxingClass[rawTypeInJava] if rawTypeInJava in ('int', 'float', 'double', 'byte') else rawTypeInJava
@@ -138,6 +216,9 @@ def _convert_list_to_Java(self, var_from_sos, varName):
     listInitString += ').collect(Collectors.toList()));'
     return [f'ArrayList<{elementTypeInJava}>', listInitString]
 
+def _java_array_values(self, javaVar):
+    return self.sos_kernel.get_response(f'System.out.println( getJavaArrayValues({javaVar}) );', ('stream',), 
+        name=('stdout','stderr') )[0][1]['text']
 
 def _get_java_type_and_value(self, javaVar):
     try:
@@ -155,6 +236,9 @@ def _convert_from_java_to_Python(self, javaVar):
         return f'{javaVar} = {javaVarTypeAndValue["value"]}\n'
     if javaVarTypeAndValue["type"] in _javaStringTypes:
         return f'{javaVar} = "{javaVarTypeAndValue["value"]}"\n'
+    # array eg int[] convert to list in python []
+    if '[]' in javaVarTypeAndValue["type"]:
+        return f'{javaVar} = [{_java_array_values(self, javaVar)}]' 
         
 def _convert_from_java_to_SoS(self, javaVar):
     javaVarTypeAndValue = _get_java_type_and_value(self, javaVar)
@@ -176,7 +260,7 @@ def _readSettings():
     return json.loads(settings, encoding='utf-8')
 
 # Dict that maps python types to functions that will do the conversions
-_typeToConverterSwitch = {
+_typeToConverterSwitchPythonToJava = {
     None: _convert_None_to_Java,
     bool: _convert_bool_to_Java,
     np.bool: _convert_bool_to_Java,
@@ -219,7 +303,7 @@ class sos_java:
                 changed = True 
             if changed:
                  self.sos_kernel.warn(f'Variable "{name}" from SoS to kernel {self.kernel_name} has been renamed to "{newname}" to follow language conventions')
-            converter = _typeToConverterSwitch[type(env.sos_dict[name])]
+            converter = _typeToConverterSwitchPythonToJava[type(env.sos_dict[name])]
             type_and_value = converter(self, env.sos_dict[name], name) if converter else None
             if type_and_value is None:
                 self.sos_kernel.warn(f'Unsupported datatype {repr(env.sos_dict[name])} by {self.kernel_name}')
