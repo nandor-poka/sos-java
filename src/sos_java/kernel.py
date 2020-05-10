@@ -91,10 +91,10 @@ def _convert_float_to_Java(self, var_from_sos, varName):
     
 def _convert_dict_to_Java(self, var_from_sos, varName):
     if not _check_type_homogeneity_in_collection(var_from_sos.keys()):
-        print(f'Java does not support collections (eg. Sets, Lists, Maps) with heterogenous types. Keys in {varName} are of not the same types.')
+        self.sos_kernel.warn(f'Java does not support collections (eg. Sets, Lists, Maps) with heterogenous types. Keys in {varName} are of not the same types.')
         return None
     elif not _check_type_homogeneity_in_collection(var_from_sos.values()):
-        print(f'Java does not support collections (eg. Sets, Lists, Maps) with heterogenous types. Values in {varName} are of not the same types.')
+        self.sos_kernel.warn(f'Java does not support collections (eg. Sets, Lists, Maps) with heterogenous types. Values in {varName} are of not the same types.')
         return None
     items = var_from_sos.items()
     items_iterator = iter(items)
@@ -109,16 +109,35 @@ def _convert_dict_to_Java(self, var_from_sos, varName):
     if type(fistItem[1]) not in (tuple, list, dict):
         values_rawTypeInJava = values_converter(self,fistItem[1], varName )[0]
         values_elementTypeInJava = _Java_primitive_to_BoxingClass[keys_rawTypeInJava] if values_rawTypeInJava in ('int', 'float', 'double', 'byte') else values_rawTypeInJava    
-    setInitString = f'new HashMap(Stream.of(' 
+    mapInitString = f'new HashMap(Stream.of(' 
     for entry in  items:
         key_conversion = keys_converter(self, entry[0], varName )
         value_conversion  = values_converter(self, entry[1], varName )
         key_Value = key_conversion[1]
         value_Value = value_conversion[1]
-        setInitString+= f'new AbstractMap.SimpleEntry<{keys_elementTypeInJava}, {values_elementTypeInJava}>({key_Value}, {value_Value}),'
-    setInitString = setInitString.rstrip(',')
-    setInitString += ').collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));'
-    return [f'HashMap<{keys_elementTypeInJava},{values_elementTypeInJava} >', setInitString]
+        mapInitString+= f'new AbstractMap.SimpleEntry<{keys_elementTypeInJava}, {values_elementTypeInJava}>({key_Value}, {value_Value}),'
+    mapInitString = mapInitString.rstrip(',')
+    mapInitString += ').collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));'
+    return [f'HashMap<{keys_elementTypeInJava},{values_elementTypeInJava}>', mapInitString]
+
+def _convert_list_to_Java(self, var_from_sos, varName):
+    if not _check_type_homogeneity_in_collection(var_from_sos):
+        self.sos_kernel.warn(f'Java does not support collections (eg. Sets, Lists, Maps) with heterogenous types. Keys in {varName} are of not the same types.')
+        return None
+    # At this point the list is homogenous at the first level of elements, thus the 1st element type applies to all
+    converter = _typeToConverterSwitch[type(var_from_sos[0])]
+    # Primitive Java numeric types need to be converted to their Boxing type. Eg. int -> Integer.
+    rawTypeInJava = converter(self,var_from_sos[0], varName )[0]
+    elementTypeInJava = _Java_primitive_to_BoxingClass[rawTypeInJava] if rawTypeInJava in ('int', 'float', 'double', 'byte') else rawTypeInJava
+    listInitString = f'new ArrayList(Stream.of(' 
+    for item in  var_from_sos:
+        conversion = converter(self, item, varName )
+        itemValue = conversion[1]
+        listInitString+= f'{itemValue},'
+    listInitString = listInitString.rstrip(',')
+    listInitString += ').collect(Collectors.toList()));'
+    return [f'ArrayList<{elementTypeInJava}>', listInitString]
+
 
 def _get_java_type_and_value(self, javaVar):
     try:
@@ -169,7 +188,8 @@ _typeToConverterSwitch = {
     str: _convert_string_to_Java,
     float: _convert_float_to_Java,
     tuple: _convert_tuple_to_Java,
-    dict: _convert_dict_to_Java
+    dict: _convert_dict_to_Java,
+    list: _convert_list_to_Java
 }  
 class sos_java:
     settings = _readSettings()
