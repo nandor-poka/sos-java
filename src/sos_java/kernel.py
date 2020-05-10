@@ -18,7 +18,11 @@ _Java_primitive_to_BoxingClass = {
 }
 
 def _check_type_homogeneity_in_collection(var_from_sos):
-    type_of_first_element = type(var_from_sos[0])
+    if isinstance(var_from_sos, (type({}.keys()),type({}.values()) )):
+        iterator = iter(var_from_sos)
+        type_of_first_element = type(next(iterator))
+    else:
+        type_of_first_element = type(var_from_sos[0])
     return all(isinstance(element, type_of_first_element) for element in var_from_sos)
 
 def _convert_None_to_Java(self, var_from_sos, varName):
@@ -44,14 +48,15 @@ def _convert_tuple_to_Java(self, var_from_sos, varName):
     # Non-collection types can be converted directly, this means that the tuple is a tuple of primitives (more generally non collection type)
     if type(var_from_sos[0])not in (tuple, list, dict):
         # Primitive Java numeric types need to be converted to their Boxing type. Eg. int -> Integer.
-        rawTypeInJava = converter(self,var_from_sos[0], 'firstElement' )[0]
+        rawTypeInJava = converter(self,var_from_sos[0], varName )[0]
         elementTypeInJava = _Java_primitive_to_BoxingClass[rawTypeInJava] if rawTypeInJava in ('int', 'float', 'double', 'byte') else rawTypeInJava
-        setInitString = f'new HashSet<{elementTypeInJava}>()'+'{{'    
+        setInitString = 'Stream.of('    
         for element in var_from_sos:
             conversion = converter(self, element, varName )
             elementValue = conversion[1]
-            setInitString += f'add({elementValue});'
-        setInitString += '}}'
+            setInitString += f'{elementValue},'
+        setInitString = setInitString.rstrip(',')
+        setInitString += ').collect(Collectors.toCollection(HashSet::new));'
         return [f'HashSet<{elementTypeInJava}>', setInitString]
     else:
         for index in range(0, len(var_from_sos)-1):
@@ -59,21 +64,22 @@ def _convert_tuple_to_Java(self, var_from_sos, varName):
                 print(f'Java does not support collections (eg. Sets, Lists, Maps) with heterogenous types.')
                 return None
         # in this case the original tuple contained other collection(s). Eg tuple of tuples
-        setInitString = f'new HashSet<T>()'+'{{'  
+        setInitString = 'Stream.of('  
         for element in var_from_sos:
             conversion = converter(self, element, varName )
             if conversion == None:
                 break
             elementTypeInJava = conversion[0]
             elementValue = conversion[1]
-            setInitString += f'add({elementValue});'
+            setInitString += f'{elementValue},'
         if conversion == None:
             return None
-        setInitString += '}}'
+        setInitString = setInitString.rstrip(',')
+        setInitString += ').collect(Collectors.toCollection(HashSet::new));'
         setInitString = setInitString.replace('<T>',f'<{elementTypeInJava}>')
         return [f'HashSet<{elementTypeInJava}>', setInitString]
 
-def _convert_float_to_Java(var_from_sos):
+def _convert_float_to_Java(self, var_from_sos, varName):
     # Checking for NaN, +/- infinity before returning actual value
     if math.isnan(var_from_sos):
         return ['Double', 'Double.NaN']
@@ -82,6 +88,37 @@ def _convert_float_to_Java(var_from_sos):
     if var_from_sos == float('inf'):
         return ['Double', 'Double.POSITIVE_INFINITY']
     return ['double', repr(var_from_sos)]
+    
+def _convert_dict_to_Java(self, var_from_sos, varName):
+    if not _check_type_homogeneity_in_collection(var_from_sos.keys()):
+        print(f'Java does not support collections (eg. Sets, Lists, Maps) with heterogenous types. Keys in {varName} are of not the same types.')
+        return None
+    elif not _check_type_homogeneity_in_collection(var_from_sos.values()):
+        print(f'Java does not support collections (eg. Sets, Lists, Maps) with heterogenous types. Values in {varName} are of not the same types.')
+        return None
+    items = var_from_sos.items()
+    items_iterator = iter(items)
+    fistItem = next(items_iterator)
+    # At this point the map is homogenous at the first level of elements, thus the 1st element type applies to all
+    keys_converter = _typeToConverterSwitch[type(fistItem[0])]
+    values_converter = _typeToConverterSwitch[type(fistItem[1])]
+    if type(fistItem[0]) not in (tuple, list, dict):
+         # Primitive Java numeric types need to be converted to their Boxing type. Eg. int -> Integer.
+        keys_rawTypeInJava = keys_converter(self,fistItem[0], varName )[0]
+        keys_elementTypeInJava = _Java_primitive_to_BoxingClass[keys_rawTypeInJava] if keys_rawTypeInJava in ('int', 'float', 'double', 'byte') else keys_rawTypeInJava
+    if type(fistItem[1]) not in (tuple, list, dict):
+        values_rawTypeInJava = values_converter(self,fistItem[1], varName )[0]
+        values_elementTypeInJava = _Java_primitive_to_BoxingClass[keys_rawTypeInJava] if values_rawTypeInJava in ('int', 'float', 'double', 'byte') else values_rawTypeInJava    
+    setInitString = f'new HashMap(Stream.of(' 
+    for entry in  items:
+        key_conversion = keys_converter(self, entry[0], varName )
+        value_conversion  = values_converter(self, entry[1], varName )
+        key_Value = key_conversion[1]
+        value_Value = value_conversion[1]
+        setInitString+= f'new AbstractMap.SimpleEntry<{keys_elementTypeInJava}, {values_elementTypeInJava}>({key_Value}, {value_Value}),'
+    setInitString = setInitString.rstrip(',')
+    setInitString += ').collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));'
+    return [f'HashMap<{keys_elementTypeInJava},{values_elementTypeInJava} >', setInitString]
 
 def _get_java_type_and_value(self, javaVar):
     try:
@@ -131,7 +168,8 @@ _typeToConverterSwitch = {
     np.int64: _convert_Integers_to_Java,
     str: _convert_string_to_Java,
     float: _convert_float_to_Java,
-    tuple: _convert_tuple_to_Java
+    tuple: _convert_tuple_to_Java,
+    dict: _convert_dict_to_Java
 }  
 class sos_java:
     settings = _readSettings()
