@@ -8,7 +8,7 @@ Java Language module for the SoS jupyter kernel.
 
 ### Features
 
-Direct data type conversion between Java and Python 3. Typesafety check for variables imported from other kernels.
+Direct data type conversion between Java and Python 3. Type safety check for variables imported from other kernels.
 Variable name and type is globally kept for variables coming from other kernels. If a variable with an existing name is passed, but the 
 new type does not match the old type, the kernel automatically renames the incoming variable and warns the user.
 
