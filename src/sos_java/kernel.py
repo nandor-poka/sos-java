@@ -48,7 +48,8 @@ init_statements = '''
         values = values.substring(0, values.length()-1);
         return values;
     }
-        public String getJavaArrayValues(long[] array){
+    
+    public String getJavaArrayValues(long[] array){
         String values = "";
         for (int i=0;i<array.length;++i){
             values += String.valueOf(array[i])+",";
@@ -78,6 +79,45 @@ init_statements = '''
         values = values.substring(0, values.length()-1);
         return values;
     }
+    
+    public String getJavaListTypeValues(List list){
+        String elementType = ((Object)list.get(0)).getClass().getSimpleName();
+        String values = "";
+        switch(elementType){
+            case "Byte":
+                return list.toString();
+            case "Short":
+                return list.toString();
+            case "Integer":
+                return list.toString();
+            case "Long":
+                return list.toString();
+            case "Float":
+                return list.toString();
+            case "Double":
+                return list.toString();
+            case "String":
+                for (int i=0;i<list.size();++i){
+                    values += "'"+list.get(i)+"',";
+                }
+                values = values.substring(0, values.length()-1);
+                return values;
+            case "Boolean":
+                for (int i=0;i<list.size();++i){
+                    if(Boolean.parseBoolean(list.get(i).toString())){   
+                        values += "True,";
+                    }else{
+                         values += "False,";
+                    }
+                    
+                }
+                values = values.substring(0, values.length()-1);
+                return values;
+            default:
+                return "Unsupported type in list.";
+        }
+    }
+   
 '''
 
 # global variables to be used for Java variable conversion
@@ -85,7 +125,7 @@ _javaNumericTypes = ['Integer', 'Long', 'Float', 'Double', 'Short', 'Byte']
 _javaStringTypes = ['String', 'Char']
 _javaMapTypes = ['Map', 'ConcurrentHashMap', 'ConcurrentSkipListMap', 'EnumMap', 'HashMap', 'LinkedHashMap' 'IdentityHashMap', 'TreeMap', 'WeakHashMap']
 _javaSetTypes = ['ConcurrentSkipListSet', 'CopyOnWriteArraySet', 'EnumSet', 'HashSet', 'LinkedHashSet','TreeSet']
-_javaListTypes = ['AbstractSequentialList', 'LinkedList', 'ArrayList', 'ObservableListBase', 'Vector', 'Stack']
+_javaListTypes = [ 'List','AbstractSequentialList', 'LinkedList', 'ArrayList', 'ObservableListBase', 'Vector', 'Stack']
 
 # dict used as 'switch' to convert primitive numeric Java types to ther boxing class
 _Java_primitive_to_BoxingClass = {
@@ -220,6 +260,11 @@ def _java_array_values(self, javaVar):
     return self.sos_kernel.get_response(f'System.out.println( getJavaArrayValues({javaVar}) );', ('stream',), 
         name=('stdout','stderr') )[0][1]['text']
 
+def _java_list_type_values(self, javaVar):
+    values = self.sos_kernel.get_response(f'System.out.println( getJavaListTypeValues({javaVar}) );', ('stream',), 
+        name=('stdout','stderr') )[0][1]['text']
+    return values 
+        
 def _get_java_type_and_value(self, javaVar):
     try:
         javaVarType = self.sos_kernel.get_response(f'System.out.println(((Object){javaVar}).getClass().getSimpleName());', ('stream',), 
@@ -232,13 +277,16 @@ def _get_java_type_and_value(self, javaVar):
 
 def _convert_from_java_to_Python(self, javaVar):
     javaVarTypeAndValue = _get_java_type_and_value(self, javaVar)
+    self.sos_kernel.warn(javaVarTypeAndValue)
     if javaVarTypeAndValue["type"] in _javaNumericTypes:
         return f'{javaVar} = {javaVarTypeAndValue["value"]}\n'
     if javaVarTypeAndValue["type"] in _javaStringTypes:
         return f'{javaVar} = "{javaVarTypeAndValue["value"]}"\n'
     # array eg int[] convert to list in python []
     if '[]' in javaVarTypeAndValue["type"]:
-        return f'{javaVar} = [{_java_array_values(self, javaVar)}]' 
+        return f'{javaVar} = [{_java_array_values(self, javaVar)}]'
+    if javaVarTypeAndValue["type"] in _javaListTypes:
+        return f'{javaVar} = [{_java_list_type_values(self, javaVar)}]'
         
 def _convert_from_java_to_SoS(self, javaVar):
     javaVarTypeAndValue = _get_java_type_and_value(self, javaVar)
@@ -338,7 +386,7 @@ class sos_java:
                 for varName in items:
                     dictToSos[varName] += _convert_from_java_to_Python(self, varName )
             except Exception as e:
-                self.sos_kernel.warn(f'Exception occurred when transferring {varName} from Java to {to_kernel}. {e.__str__()}')
+                self.sos_kernel.warn(f'Exception occurred when transferring {varName} from Java to SoS Kernel. {e.__str__()}')
             return dictToSos
             
     def expand(self, text, sigil):
