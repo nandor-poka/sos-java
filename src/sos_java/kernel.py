@@ -335,7 +335,6 @@ def _convert_list_to_Java(self, var_from_sos, varName):
         listInitString+= f'{itemValue},'
     listInitString = listInitString.rstrip(',')
     listInitString += '};'
-    self.sos_kernel.warn(listInitString)
     return [f'{rawTypeInJava}[]', listInitString]
 
 def _convert_list_to_Java_as_ArrayList(self, var_from_sos, varName):
@@ -463,7 +462,8 @@ class sos_java:
             else:
                 if newname in sos_java.java_vars and sos_java.java_vars[newname] != type_and_value[0]:
                     oldname = newname
-                    newname = newname + "_" +type_and_value[0]
+                    typename = type_and_value[0].split('[')[0].split('<')[0]
+                    newname = newname + "_" +typename
                     self.sos_kernel.warn(f'Variable {name} is passed from SoS to kernel {self.kernel_name} already exists as {sos_java.java_vars[oldname]} type. Variable is saved as {newname}')
                 
                 result = self.sos_kernel.run_cell(
