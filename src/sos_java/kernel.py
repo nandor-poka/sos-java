@@ -80,7 +80,7 @@ init_statements = '''
         return values;
     }
     
-    public String getJavaListTypeValues(List list){
+    public <T> String getJavaListTypeValues(List<T> list){
         String elementType = ((Object)list.get(0)).getClass().getSimpleName();
         String values = "";
         switch(elementType){
@@ -117,7 +117,88 @@ init_statements = '''
                 return "Unsupported type in list.";
         }
     }
-   
+
+    public <T1, T2> String getJavaMapTypeValues(Map<T1,T2> map){
+        String values = "";
+        String keyType = map.entrySet().iterator().next().getKey().getClass().getSimpleName();
+        String valueType = ( (Object)map.entrySet().iterator().next().getValue()).getClass().getSimpleName();
+        String keyValue;
+        String valueValue;
+        for (Map.Entry<T1,T2> entry: map.entrySet() ){
+            switch(keyType){
+                case "Byte":
+                    keyValue = entry.getKey().toString();
+                    break;
+                case "Short":
+                    keyValue = entry.getKey().toString();
+                    break;
+                case "Integer":
+                    keyValue = entry.getKey().toString();
+                    break;
+                case "Long":
+                    keyValue = entry.getKey().toString();
+                    break;
+                case "Float":
+                    keyValue = entry.getKey().toString();
+                    break;
+                case "Double":
+                    keyValue = entry.getKey().toString();
+                    break;
+                case "String":
+                    keyValue = "'"+entry.getKey()+"'";
+                    break;
+                case "Boolean":
+                    if(Boolean.parseBoolean(entry.getKey().toString())){   
+                        keyValue = "True,";
+                    }else{
+                        keyValue = "False,";
+                    }
+                    break;
+                default:
+                    keyValue = null;
+                    break;
+            }
+            switch(valueType){
+                case "Byte":
+                    valueValue = entry.getValue().toString();
+                    break;
+                case "Short":
+                    valueValue = entry.getValue().toString();
+                    break;
+                case "Integer":
+                    valueValue = entry.getValue().toString();
+                    break;
+                case "Long":
+                    valueValue = entry.getValue().toString();
+                    break;
+                case "Float":
+                    valueValue = entry.getValue().toString();
+                    break;
+                case "Double":
+                    valueValue = entry.getValue().toString();
+                    break;
+                case "String":
+                    valueValue = "'"+entry.getValue()+"'";
+                    break;
+                case "Boolean":
+                    if(Boolean.parseBoolean(entry.getValue().toString())){   
+                        valueValue = "True";
+                    }else{
+                        valueValue = "False";
+                    }
+                    break;
+                default:
+                    valueValue = null;
+                    break;
+            }
+            if (keyValue == null ||  valueValue == null){
+                return "Unsupported type in Map.";
+            }
+            values += keyValue +":"+valueValue+",";
+        }
+        values = values.substring(0, values.length()-1);
+        return values;
+    }  
 '''
 
 # global variables to be used for Java variable conversion
@@ -143,6 +224,7 @@ def _check_type_homogeneity_in_collection(var_from_sos):
         type_of_first_element = type(var_from_sos[0])
     return all(isinstance(element, type_of_first_element) for element in var_from_sos)
 
+# Conversions TO JAVA
 def _convert_None_to_Java(self, var_from_sos, varName):
      return ['Void','NULL']
 
@@ -256,14 +338,18 @@ def _convert_list_to_Java(self, var_from_sos, varName):
     listInitString += ').collect(Collectors.toList()));'
     return [f'ArrayList<{elementTypeInJava}>', listInitString]
 
+# Conversions FROM JAVA
 def _java_array_values(self, javaVar):
     return self.sos_kernel.get_response(f'System.out.println( getJavaArrayValues({javaVar}) );', ('stream',), 
         name=('stdout','stderr') )[0][1]['text']
 
 def _java_list_type_values(self, javaVar):
-    values = self.sos_kernel.get_response(f'System.out.println( getJavaListTypeValues({javaVar}) );', ('stream',), 
-        name=('stdout','stderr') )[0][1]['text']
-    return values 
+    return self.sos_kernel.get_response(f'System.out.println( getJavaListTypeValues({javaVar}) );', ('stream',), 
+        name=('stdout','stderr') )[0][1]['text'] 
+
+def _java_map_type_values(self, javaVar):
+    return self.sos_kernel.get_response(f'System.out.println( getJavaMapTypeValues({javaVar}) );', ('stream',), 
+        name=('stdout','stderr') )[0][1]['text'] 
         
 def _get_java_type_and_value(self, javaVar):
     try:
@@ -277,7 +363,6 @@ def _get_java_type_and_value(self, javaVar):
 
 def _convert_from_java_to_Python(self, javaVar):
     javaVarTypeAndValue = _get_java_type_and_value(self, javaVar)
-    self.sos_kernel.warn(javaVarTypeAndValue)
     if javaVarTypeAndValue["type"] in _javaNumericTypes:
         return f'{javaVar} = {javaVarTypeAndValue["value"]}\n'
     if javaVarTypeAndValue["type"] in _javaStringTypes:
@@ -287,6 +372,8 @@ def _convert_from_java_to_Python(self, javaVar):
         return f'{javaVar} = [{_java_array_values(self, javaVar)}]'
     if javaVarTypeAndValue["type"] in _javaListTypes:
         return f'{javaVar} = [{_java_list_type_values(self, javaVar)}]'
+    if javaVarTypeAndValue["type"] in _javaMapTypes:
+        return f'{javaVar} = '+'{'+f'{_java_map_type_values(self, javaVar)}'+'}'
         
 def _convert_from_java_to_SoS(self, javaVar):
     javaVarTypeAndValue = _get_java_type_and_value(self, javaVar)
