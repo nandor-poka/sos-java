@@ -226,7 +226,7 @@ def _check_type_homogeneity_in_collection(var_from_sos):
 
 # Conversions TO JAVA
 def _convert_None_to_Java(self, var_from_sos, varName):
-     return ['Void','NULL']
+     return ['Void','null']
 
 def _convert_Integers_to_Java(self, var_from_sos, varName):
     if var_from_sos < -2^31 or var_from_sos > 2^31-1:
@@ -328,6 +328,24 @@ def _convert_list_to_Java(self, var_from_sos, varName):
     converter = _typeToConverterSwitchPythonToJava[type(var_from_sos[0])]
     # Primitive Java numeric types need to be converted to their Boxing type. Eg. int -> Integer.
     rawTypeInJava = converter(self,var_from_sos[0], varName )[0]
+    listInitString = f'new {rawTypeInJava}[]'+'{' 
+    for item in  var_from_sos:
+        conversion = converter(self, item, varName )
+        itemValue = conversion[1]
+        listInitString+= f'{itemValue},'
+    listInitString = listInitString.rstrip(',')
+    listInitString += '};'
+    self.sos_kernel.warn(listInitString)
+    return [f'{rawTypeInJava}[]', listInitString]
+
+def _convert_list_to_Java_as_ArrayList(self, var_from_sos, varName):
+    if not _check_type_homogeneity_in_collection(var_from_sos):
+        self.sos_kernel.warn(f'Java does not support collections (eg. Sets, Lists, Maps) with heterogenous types. Keys in {varName} are of not the same types.')
+        return None
+    # At this point the list is homogenous at the first level of elements, thus the 1st element type applies to all
+    converter = _typeToConverterSwitchPythonToJava[type(var_from_sos[0])]
+    # Primitive Java numeric types need to be converted to their Boxing type. Eg. int -> Integer.
+    rawTypeInJava = converter(self,var_from_sos[0], varName )[0]
     elementTypeInJava = _Java_primitive_to_BoxingClass[rawTypeInJava] if rawTypeInJava in ('int', 'float', 'double', 'byte') else rawTypeInJava
     listInitString = f'new ArrayList(Stream.of(' 
     for item in  var_from_sos:
@@ -374,7 +392,7 @@ def _convert_from_java_to_Python(self, javaVar):
         return f'{javaVar} = [{_java_list_type_values(self, javaVar)}]'
     if javaVarTypeAndValue["type"] in _javaMapTypes:
         return f'{javaVar} = '+'{'+f'{_java_map_type_values(self, javaVar)}'+'}'
-        
+
 def _convert_from_java_to_SoS(self, javaVar):
     javaVarTypeAndValue = _get_java_type_and_value(self, javaVar)
     if javaVarTypeAndValue["type"] in _javaNumericTypes:
@@ -404,8 +422,8 @@ _typeToConverterSwitchPythonToJava = {
     np.int16: _convert_Integers_to_Java,
     np.int32: _convert_Integers_to_Java,
     np.int64: _convert_Integers_to_Java,
-    str: _convert_string_to_Java,
     float: _convert_float_to_Java,
+    str: _convert_string_to_Java,
     tuple: _convert_tuple_to_Java,
     dict: _convert_dict_to_Java,
     list: _convert_list_to_Java
