@@ -22,3 +22,5 @@ Direct data type conversion between Java and Python 3.
 | `tuple`      | `HashSet` *     |
 | `dict`      | `HashMap` *     |
 | `list`      | array of corresponding primitive type (except `String`), eg.: `int[]` *     |
+
+* Due to the limitation of the Java language `dict`, `tuple`, and `list` types are only converted if their elements are of the same type. Eg.a `list` of `["1", 2]` will not be converted. 
