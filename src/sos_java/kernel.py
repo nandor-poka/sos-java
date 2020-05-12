@@ -246,7 +246,7 @@ _javaStringTypes = ['String', 'Char']
 _javaMapTypes = ['Map', 'ConcurrentHashMap', 'ConcurrentSkipListMap', 'EnumMap', 'HashMap', 'LinkedHashMap' 'IdentityHashMap', 'TreeMap', 'WeakHashMap']
 _javaSetTypes = ['ConcurrentSkipListSet', 'CopyOnWriteArraySet', 'EnumSet', 'HashSet', 'LinkedHashSet','TreeSet']
 _javaListTypes = [ 'List','AbstractSequentialList', 'LinkedList', 'ArrayList', 'ObservableListBase', 'Vector', 'Stack']
-
+_javaBooleanTypes = ['boolean', 'Boolean']
 # dict used as 'switch' to convert primitive numeric Java types to ther boxing class
 _Java_primitive_to_BoxingClass = {
     'int':'Integer',
@@ -427,6 +427,11 @@ def _convert_from_java_to_Python(self, javaVar):
         return f'{javaVar} = {javaVarTypeAndValue["value"]}\n'
     if javaVarTypeAndValue["type"] in _javaStringTypes:
         return f'{javaVar} = "{javaVarTypeAndValue["value"]}"\n'
+    if javaVarTypeAndValue["type"] in _javaBooleanTypes:
+        if javaVarTypeAndValue["value"] in ['True', 'true', 'TRUE']:
+            return f'{javaVar} = "True"\n'
+        else:
+            return f'{javaVar} = "False"\n'
     # array eg int[] convert to list in python []
     if '[]' in javaVarTypeAndValue["type"]:
         return f'{javaVar} = [{_java_array_values(self, javaVar)}]'
@@ -443,6 +448,19 @@ def _convert_from_java_to_SoS(self, javaVar):
        return f'{javaVarTypeAndValue["value"]}'
     if javaVarTypeAndValue["type"] in _javaStringTypes:
        return f'"{javaVarTypeAndValue["value"]}"'
+    if javaVarTypeAndValue["type"] in _javaBooleanTypes:
+        if javaVarTypeAndValue["value"] in ['True', 'true', 'TRUE']:
+            return 'True'
+        else:
+            return 'False'
+    if '[]' in javaVarTypeAndValue["type"]:
+        return f'[{_java_array_values(self, javaVar)}]'
+    if javaVarTypeAndValue["type"] in _javaListTypes:
+        return f'[{_java_list_type_values(self, javaVar)}]'
+    if javaVarTypeAndValue["type"] in _javaMapTypes:
+        return '{'+f'{_java_map_type_values(self, javaVar)}'+'}'
+    if javaVarTypeAndValue["type"] in _javaSetTypes:
+        return '('+f'{_java_set_type_values(self, javaVar)}'+')'
 
 def _readSettings():
     __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
@@ -520,8 +538,9 @@ class sos_java:
                     sos_java.java_vars[newname] = type_and_value[0]
 
     def put_vars(self, items, to_kernel=None):
+        self.sos_kernel.warn(to_kernel)
         if not items:
-            return None
+            return {}
         if to_kernel in ['python3', 'Python3']:
             pythonCmd = ''
             try:
@@ -530,13 +549,14 @@ class sos_java:
             except Exception as e:
                 self.sos_kernel.warn(f'Exception occurred when transferring {varName} from Java to {to_kernel}. {e.__str__()}')
             return pythonCmd
-        elif to_kernel == None:
+        else:
             dictToSos = dict()
             try:
                 for varName in items:
-                    dictToSos[varName] += _convert_from_java_to_Python(self, varName )
+                    dictToSos[varName] = eval(_convert_from_java_to_SoS(self, varName ))
             except Exception as e:
                 self.sos_kernel.warn(f'Exception occurred when transferring {varName} from Java to SoS Kernel. {e.__str__()}')
+
             return dictToSos
             
     def expand(self, text, sigil):
