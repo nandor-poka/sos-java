@@ -118,6 +118,45 @@ init_statements = '''
         }
     }
 
+public <T> String getJavaSetTypeValues(Set<T> set){
+        Object[] setElementArray = set.toArray();
+        String elementType = setElementArray[0].getClass().getSimpleName();
+        String values = "";
+        switch(elementType){
+            case "Byte":
+                return set.toString();
+            case "Short":
+                return set.toString();
+            case "Integer":
+                return set.toString();
+            case "Long":
+                return set.toString();
+            case "Float":
+                return set.toString();
+            case "Double":
+                return set.toString();
+            case "String":
+                for (int i=0;i<setElementArray.length;++i){
+                    values += "'"+setElementArray[i]+"',";
+                }
+                values = values.substring(0, values.length()-1);
+                return values;
+            case "Boolean":
+                for (int i=0;i<setElementArray.length;++i){
+                    if(Boolean.parseBoolean(setElementArray[i].toString())){   
+                        values += "True,";
+                    }else{
+                         values += "False,";
+                    }
+                    
+                }
+                values = values.substring(0, values.length()-1);
+                return values;
+            default:
+                return "Unsupported type in list.";
+        }
+    }
+
     public <T1, T2> String getJavaMapTypeValues(Map<T1,T2> map){
         String values = "";
         String keyType = map.entrySet().iterator().next().getKey().getClass().getSimpleName();
@@ -367,6 +406,10 @@ def _java_list_type_values(self, javaVar):
 def _java_map_type_values(self, javaVar):
     return self.sos_kernel.get_response(f'System.out.println( getJavaMapTypeValues({javaVar}) );', ('stream',), 
         name=('stdout','stderr') )[0][1]['text'] 
+
+def _java_set_type_values(self, javaVar):
+    return self.sos_kernel.get_response(f'System.out.println( getJavaSetTypeValues({javaVar}) );', ('stream',), 
+        name=('stdout','stderr') )[0][1]['text'] 
         
 def _get_java_type_and_value(self, javaVar):
     try:
@@ -391,6 +434,8 @@ def _convert_from_java_to_Python(self, javaVar):
         return f'{javaVar} = [{_java_list_type_values(self, javaVar)}]'
     if javaVarTypeAndValue["type"] in _javaMapTypes:
         return f'{javaVar} = '+'{'+f'{_java_map_type_values(self, javaVar)}'+'}'
+    if javaVarTypeAndValue["type"] in _javaSetTypes:
+        return f'{javaVar} = '+'('+f'{_java_set_type_values(self, javaVar)}'+')'
 
 def _convert_from_java_to_SoS(self, javaVar):
     javaVarTypeAndValue = _get_java_type_and_value(self, javaVar)

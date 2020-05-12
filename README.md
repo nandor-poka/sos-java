@@ -38,3 +38,4 @@ new type does not match the old type, the kernel automatically renames the incom
 | `Map`     | `dict`  |
 | `array`, eg. `int[]`| `list`    |
 | `List`    | `list` |
+| `Set`    | `tuple` |
