@@ -31,8 +31,8 @@ new type does not match the old type, the kernel automatically renames the incom
 
 |           **Java type(s)**                           | **Python type**     |
 | :---                                               | ---:           |
-| `boolean` | `bool`  |
-| `Integer`, `Long`, `Float`, `Double`, `Short`, `Byte` or their primitive types| `int`|
+| `boolean`, `Boolean` | `bool`  |
+| `Integer`, `Long`, `Double`, `Short`, `Byte` or their primitive types| `int`|
 | `float`   | `float` |
 | `String`  | `str`   |
 | `Map`     | `dict`  |
