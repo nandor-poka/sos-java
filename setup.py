@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python
 #
 # Copyright (c) 2020, Dr. Nandor Poka
@@ -14,21 +13,20 @@ def get_long_description():
         return ld_file.read()
 
 setup(
-    name="sos-java-jl",
+    name="sos-collection-java",
     version=__version__,
-    description='SoS Notebook extension for JAVA',
+    description='SoS Notebook extension for Java.',
     long_description=get_long_description(),
     long_description_content_type="text/markdown",
     author='Dr. Nandor Poka',
-    url='https://github.com/nandor-poka/sos-java',
+    url='https://github.com/nandor-poka/sos-collection-java',
     author_email='np@np-bio.info',
     maintainer = 'Dr. Nandor Poka',
     maintainer_email='np@np-bio.info',
-    license='3-clause BSD',
+    license='"BSD-3-Clause',
     include_package_data=True,
     classifiers=[
-        'Environment :: Console',
-        'License :: BSD License',
+        'License :: OSI Approved :: BSD License',
         'Natural Language :: English',
         'Operating System :: POSIX :: Linux',
         'Operating System :: MacOS :: MacOS X',
@@ -40,7 +38,7 @@ setup(
     packages=find_packages('src'),
     package_dir={'': 'src'},
     install_requires=[
-        'sos>=0.21.5', 'sos-notebook>=0.21.7', 
+        'sos>=0.21.5', 'sos-collection-notebook>=0.1.0', 
     ],
     entry_points='''
 [sos_languages]
