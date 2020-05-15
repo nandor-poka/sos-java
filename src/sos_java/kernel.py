@@ -538,7 +538,6 @@ class sos_java:
                     sos_java.java_vars[newname] = type_and_value[0]
 
     def put_vars(self, items, to_kernel=None):
-        self.sos_kernel.warn(to_kernel)
         if not items:
             return {}
         if to_kernel in ['python3', 'Python3']:

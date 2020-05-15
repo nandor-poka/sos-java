@@ -38,7 +38,7 @@ setup(
     packages=find_packages('src'),
     package_dir={'': 'src'},
     install_requires=[
-        'sos>=0.21.5', 'sos-collection-notebook>=0.1.0', 
+        'sos>=0.21.5', 'sos-notebook>=0.19.4', 
     ],
     entry_points='''
 [sos_languages]
