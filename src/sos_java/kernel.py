@@ -3,7 +3,32 @@ from sos.utils import short_repr, env
 import math, os
 import numpy as np
 import json
-init_statements = '''
+__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+init_statements = f'''
+    %loadFromPOM {os.path.join(__location__, 'pom.xml')}
+    import com.fasterxml.jackson.databind.*;
+    import javax.json.*;
+'''+'''
+    public JsonObject parseJsonString(String str){
+        JsonReader jsonReader = Json.createReader(new StringReader(str));
+        JsonObject jsonObj = jsonReader.readObject();
+        jsonReader.close();
+        return jsonObj;
+    }
+
+    public String convertJavaObjectToJsonString(Object obj){
+        try{
+            ObjectMapper mapper = new ObjectMapper();
+            String jsonStr = mapper.writeValueAsString(obj);
+            if (!jsonStr.startsWith("{")){
+                jsonStr = "{\\"value\\":"+jsonStr+"}";
+            }
+            return jsonStr;
+        } catch (Exception ex){
+            return ex.toString();
+        }
+    }
+
     public String getJavaArrayValues(int[] array){
         String values = "";
         for (int i=0;i<array.length;++i){
@@ -109,7 +134,6 @@ init_statements = '''
                     }else{
                          values += "False,";
                     }
-                    
                 }
                 values = values.substring(0, values.length()-1);
                 return values;
@@ -118,7 +142,7 @@ init_statements = '''
         }
     }
 
-public <T> String getJavaSetTypeValues(Set<T> set){
+    public <T> String getJavaSetTypeValues(Set<T> set){
         Object[] setElementArray = set.toArray();
         String elementType = setElementArray[0].getClass().getSimpleName();
         String values = "";
@@ -421,7 +445,9 @@ def _get_java_type_and_value(self, javaVar):
     except Exception as e:
         self.sos_kernel.warn(f'Exception occured when determining Java type of {javaVar}. {e.__str__()}')
 
-def _convert_from_java_to_Python(self, javaVar):
+def _convert_from_java_to_Python(self, javaVar, as_type):
+    if as_type == 'json':
+        return f'{javaVar} = json.loads(\'{convertJavaToJSONString(self, javaVar)}\')'
     javaVarTypeAndValue = _get_java_type_and_value(self, javaVar)
     if javaVarTypeAndValue["type"] in _javaNumericTypes:
         return f'{javaVar} = {javaVarTypeAndValue["value"]}\n'
@@ -442,7 +468,13 @@ def _convert_from_java_to_Python(self, javaVar):
     if javaVarTypeAndValue["type"] in _javaSetTypes:
         return f'{javaVar} = '+'('+f'{_java_set_type_values(self, javaVar)}'+')'
 
-def _convert_from_java_to_SoS(self, javaVar):
+def convertJavaToJSONString(self, javaVar):
+    return self.sos_kernel.get_response(f'System.out.println( convertJavaObjectToJsonString({javaVar}) );', ('stream',), 
+        name=('stdout','stderr') )[0][1]['text']
+
+def _convert_from_java_to_SoS(self, javaVar, as_type):
+    if as_type == 'json':
+        return f'\'{convertJavaToJSONString(self, javaVar)}\''
     javaVarTypeAndValue = _get_java_type_and_value(self, javaVar)
     if javaVarTypeAndValue["type"] in _javaNumericTypes:
        return f'{javaVarTypeAndValue["value"]}'
@@ -537,24 +569,24 @@ class sos_java:
                 if result["status"] == 'ok':
                     sos_java.java_vars[newname] = type_and_value[0]
 
-    def put_vars(self, items, to_kernel=None):
+    def put_vars(self, items, to_kernel=None, as_type=None):
         if not items:
             return {}
         if to_kernel in ['python3', 'Python3']:
             pythonCmd = ''
             try:
                 for varName in items:
-                    pythonCmd += _convert_from_java_to_Python(self, varName )
+                    pythonCmd += _convert_from_java_to_Python(self, varName, as_type=as_type )
             except Exception as e:
-                self.sos_kernel.warn(f'Exception occurred when transferring {varName} from Java to {to_kernel}. {e.__str__()}')
+                self.sos_kernel.warn(f'Exception occurred when transferring `{varName}` from Java to {to_kernel}. {e.__str__()}')
             return pythonCmd
         else:
             dictToSos = dict()
             try:
                 for varName in items:
-                    dictToSos[varName] = eval(_convert_from_java_to_SoS(self, varName ))
+                    dictToSos[varName] = eval(_convert_from_java_to_SoS(self, varName, as_type ))
             except Exception as e:
-                self.sos_kernel.warn(f'Exception occurred when transferring {varName} from Java to SoS Kernel. {e.__str__()}')
+                self.sos_kernel.warn(f'Exception occurred when transferring `{varName}` from Java to SoS Kernel. {e.__str__()}')
 
             return dictToSos
             

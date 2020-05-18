@@ -83,6 +83,3 @@ class TestInterface(NotebookTest):
         notebook.call('System.out.println("This is Java")', kernel="Java")
         assert 'Java' in notebook.check_output(
             '%sessioninfo', kernel="SoS")
-
-    def teardown(self):
-        time.sleep(5)
