@@ -25,6 +25,7 @@ setup(
     maintainer_email='np@np-bio.info',
     license='"BSD-3-Clause',
     include_package_data=True,
+
     classifiers=[
         'License :: OSI Approved :: BSD License',
         'Natural Language :: English',
@@ -37,6 +38,7 @@ setup(
     ],
     packages=find_packages('src'),
     package_dir={'': 'src'},
+     package_data={'': ['src/*.json']},
     install_requires=[
         'sos>=0.21.5', 'sos-notebook>=0.19.4', 
     ],
