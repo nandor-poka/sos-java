@@ -3,6 +3,7 @@ from sos.utils import short_repr, env
 import math, os
 import numpy as np
 import json
+from pathlib import Path
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 init_statements = f'''
     %loadFromPOM {os.path.join(__location__, 'pom.xml')}
@@ -495,8 +496,8 @@ def _convert_from_java_to_SoS(self, javaVar, as_type):
         return '('+f'{_java_set_type_values(self, javaVar)}'+')'
 
 def _readSettings():
-    settingsFilePath = os.path.join(__location__, 'settings.json')
-    settings = json.dumps('{}', encoding='utf-8')
+    settingsFilePath = Path(os.path.join(__location__, 'settings.json'))
+    settings = None
     try:
         if not settingsFilePath.is_file():
             return settings
@@ -525,8 +526,8 @@ _typeToConverterSwitchPythonToJava = {
 }  
 class sos_java:
     settings = _readSettings()
-    background_color = settings["color"] if settings["color"] else '#ffaba3'
-    allow_overwrite = settings["allowOverwrite"] if settings["allowOverwrite"] else False
+    background_color = settings["color"] if settings else '#ffaba3'
+    allow_overwrite = settings["allowOverwrite"] if settings else False
     supported_kernels = {'Java': ['java']}
     options = {'assignment_pattern': r'^\s*([A-Za-z0-9\.]+)\s*(=).*$'}
     #options = {}
