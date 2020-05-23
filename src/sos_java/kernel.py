@@ -495,7 +495,6 @@ def _convert_from_java_to_SoS(self, javaVar, as_type):
         return '('+f'{_java_set_type_values(self, javaVar)}'+')'
 
 def _readSettings():
-    __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
     settingsFilePath = os.path.join(__location__, 'settings.json')
     settings = json.dumps('{}', encoding='utf-8')
     try:
