@@ -497,8 +497,10 @@ def _convert_from_java_to_SoS(self, javaVar, as_type):
 def _readSettings():
     __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
     settingsFilePath = os.path.join(__location__, 'settings.json')
-    settings = None
+    settings = json.dumps('{}', encoding='utf-8')
     try:
+        if not settingsFilePath.is_file():
+            return settings
         with open(settingsFilePath, 'r') as settingsFile:
             settings = settingsFile.read()
             settingsFile.close
@@ -524,8 +526,8 @@ _typeToConverterSwitchPythonToJava = {
 }  
 class sos_java:
     settings = _readSettings()
-    background_color = settings["color"] if settings else '#ffaba3'
-    allow_overwrite = settings["allowOverwrite"] if settings else False
+    background_color = settings["color"] if settings["color"] else '#ffaba3'
+    allow_overwrite = settings["allowOverwrite"] if settings["allowOverwrite"] else False
     supported_kernels = {'Java': ['java']}
     options = {'assignment_pattern': r'^\s*([A-Za-z0-9\.]+)\s*(=).*$'}
     #options = {}
