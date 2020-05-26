@@ -288,12 +288,19 @@ def _check_type_homogeneity_in_collection(var_from_sos):
         type_of_first_element = type(var_from_sos[0])
     return all(isinstance(element, type_of_first_element) for element in var_from_sos)
 
+#returns the type (class) of the variable if it exists or none.
+def _check_user_variables(self, varName):
+    if self.sos_kernel.get_response(f'System.out.println( {varName}==null );', ('stream',), 
+        name=('stdout','stderr') )[0][1]['text'] == 'false':
+        return self.sos_kernel.get_response(f'System.out.println( (Object){varName}.getClass().getSimpleName() );', ('stream',), 
+        name=('stdout','stderr') )[0][1]['text']
+    return None
 # Conversions TO JAVA
 def _convert_None_to_Java(self, var_from_sos, varName):
      return ['Void','null']
 
 def _convert_Integers_to_Java(self, var_from_sos, varName):
-    if var_from_sos < -2^31 or var_from_sos > 2^31-1:
+    if var_from_sos < -2**31 or var_from_sos > 2**31-1:
             return ['long', repr(var_from_sos)]    
     return ['int', repr(var_from_sos)]
 
@@ -553,21 +560,28 @@ class sos_java:
             if changed:
                  self.sos_kernel.warn(f'Variable "{name}" from SoS to kernel {self.kernel_name} has been renamed to "{newname}" to follow language conventions')
             converter = _typeToConverterSwitchPythonToJava[type(env.sos_dict[name])]
-            type_and_value = converter(self, env.sos_dict[name], name) if converter else None
+            type_and_value = converter(self, env.sos_dict[name], name) if converter else None        
             if type_and_value is None:
                 self.sos_kernel.warn(f'Unsupported datatype {repr(env.sos_dict[name])} by {self.kernel_name}')
             else:
+                isUserDefVar = _check_user_variables(self, newname)
                 if newname in sos_java.java_vars and sos_java.java_vars[newname] != type_and_value[0]:
                     oldname = newname
                     typename = type_and_value[0].split('[')[0].split('<')[0]
                     newname = newname + "_" +typename
                     self.sos_kernel.warn(f'Variable {name} is passed from SoS to kernel {self.kernel_name} already exists as {sos_java.java_vars[oldname]} type. Variable is saved as {newname}')
                 
+                if isUserDefVar != None and isUserDefVar!= type_and_value[0]:   
+                    oldname = newname
+                    typename = type_and_value[0].split('[')[0].split('<')[0]
+                    newname = newname + "_" +typename
+                    self.sos_kernel.warn(f'Variable {name} is passed from SoS to kernel {self.kernel_name} already exists as {isUserDefVar} type. Variable is saved as {newname}')
+                
                 result = self.sos_kernel.run_cell(
                     f'{type_and_value[0]} {newname} = {type_and_value[1]};',
                     True,
                     False,
-                    on_error=f'Failed to get variable {name} to Java, could not convert to Java type.') 
+                    on_error=f'Failed to convert{name} to Java.') 
                 if result["status"] == 'ok':
                     sos_java.java_vars[newname] = type_and_value[0]
 
