@@ -447,8 +447,8 @@ def _get_java_type_and_value(self, javaVar):
         self.sos_kernel.warn(f'Exception occured when determining Java type of {javaVar}. {e.__str__()}')
 
 def _convert_from_java_to_Python(self, javaVar, as_type):
-    if as_type == 'json':
-        return f'{javaVar} = json.loads(\'{convertJavaToJSONString(self, javaVar)}\')'
+    if as_type.lower() == 'json':
+        return f'{javaVar} = json.loads(\'{_convertJavaToJSONString(self, javaVar)}\')'
     javaVarTypeAndValue = _get_java_type_and_value(self, javaVar)
     if javaVarTypeAndValue["type"] in _javaNumericTypes:
         return f'{javaVar} = {javaVarTypeAndValue["value"]}\n'
@@ -469,13 +469,13 @@ def _convert_from_java_to_Python(self, javaVar, as_type):
     if javaVarTypeAndValue["type"] in _javaSetTypes:
         return f'{javaVar} = '+'('+f'{_java_set_type_values(self, javaVar)}'+')'
 
-def convertJavaToJSONString(self, javaVar):
-    return self.sos_kernel.get_response(f'System.out.println( convertJavaObjectToJsonString({javaVar}) );', ('stream',), 
+def _convertJavaToJSONString(self, javaVar):
+    return self.sos_kernel.get_response(f'System.out.println( convertJavaObjectToJsonString({javaVar}));', ('stream',), 
         name=('stdout','stderr') )[0][1]['text']
 
 def _convert_from_java_to_SoS(self, javaVar, as_type):
     if as_type == 'json':
-        return f'\'{convertJavaToJSONString(self, javaVar)}\''
+        return f'\'{_convertJavaToJSONString(self, javaVar)}\''
     javaVarTypeAndValue = _get_java_type_and_value(self, javaVar)
     if javaVarTypeAndValue["type"] in _javaNumericTypes:
        return f'{javaVarTypeAndValue["value"]}'
@@ -578,7 +578,8 @@ class sos_java:
             pythonCmd = ''
             try:
                 for varName in items:
-                    pythonCmd += _convert_from_java_to_Python(self, varName, as_type=as_type )
+                    varName = varName.rstrip(',')
+                    pythonCmd += _convert_from_java_to_Python(self, varName, as_type=as_type )+'\n'
             except Exception as e:
                 self.sos_kernel.warn(f'Exception occurred when transferring `{varName}` from Java to {to_kernel}. {e.__str__()}')
             return pythonCmd
