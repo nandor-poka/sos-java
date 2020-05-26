@@ -290,8 +290,9 @@ def _check_type_homogeneity_in_collection(var_from_sos):
 
 #returns the type (class) of the variable if it exists or none.
 def _check_user_variables(self, varName):
-    if self.sos_kernel.get_response(f'System.out.println( {varName}==null );', ('stream',), 
-        name=('stdout','stderr') )[0][1]['text'] == 'false':
+    response = self.sos_kernel.get_response(f'System.out.println( {varName}==null );', ('stream',), 
+        name=('stdout','stderr') )
+    if response != [] and response[0][1]['text'] == 'false':
         return self.sos_kernel.get_response(f'System.out.println( (Object){varName}.getClass().getSimpleName() );', ('stream',), 
         name=('stdout','stderr') )[0][1]['text']
     return None
@@ -568,13 +569,13 @@ class sos_java:
                 if newname in sos_java.java_vars and sos_java.java_vars[newname] != type_and_value[0]:
                     oldname = newname
                     typename = type_and_value[0].split('[')[0].split('<')[0]
-                    newname = newname + "_" +typename
+                    newname = newname + "_" +typename.lower()
                     self.sos_kernel.warn(f'Variable {name} is passed from SoS to kernel {self.kernel_name} already exists as {sos_java.java_vars[oldname]} type. Variable is saved as {newname}')
                 
                 if isUserDefVar != None and isUserDefVar!= type_and_value[0]:   
                     oldname = newname
                     typename = type_and_value[0].split('[')[0].split('<')[0]
-                    newname = newname + "_" +typename
+                    newname = newname + "_" +typename.lower()
                     self.sos_kernel.warn(f'Variable {name} is passed from SoS to kernel {self.kernel_name} already exists as {isUserDefVar} type. Variable is saved as {newname}')
                 
                 result = self.sos_kernel.run_cell(
