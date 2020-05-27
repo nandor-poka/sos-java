@@ -458,6 +458,7 @@ def _convert_from_java_to_Python(self, javaVar, as_type):
     if as_type != None and as_type.lower() == 'json':
         return f'{javaVar} = json.loads(\'{_convertJavaToJSONString(self, javaVar)}\')'
     javaVarTypeAndValue = _get_java_type_and_value(self, javaVar)
+    self.sos_kernel.warn(javaVarTypeAndValue)
     if javaVarTypeAndValue["type"] in _javaNumericTypes:
         return f'{javaVar} = {javaVarTypeAndValue["value"]}\n'
     if javaVarTypeAndValue["type"] in _javaStringTypes:
@@ -473,6 +474,7 @@ def _convert_from_java_to_Python(self, javaVar, as_type):
     if javaVarTypeAndValue["type"] in _javaListTypes:
         return f'{javaVar} = [{_java_list_type_values(self, javaVar)}]'
     if javaVarTypeAndValue["type"] in _javaMapTypes:
+        self.sos_kernel.warn(f'{javaVar} = '+'{'+f'{_java_map_type_values(self, javaVar)}'+'}')
         return f'{javaVar} = '+'{'+f'{_java_map_type_values(self, javaVar)}'+'}'
     if javaVarTypeAndValue["type"] in _javaSetTypes:
         return f'{javaVar} = '+'('+f'{_java_set_type_values(self, javaVar)}'+')'
@@ -594,6 +596,7 @@ class sos_java:
             try:
                 for varName in items:
                     varName = varName.rstrip(',')
+                    #self.sos_kernel.warn(_convert_from_java_to_Python(self, varName, as_type=as_type ))
                     pythonCmd += _convert_from_java_to_Python(self, varName, as_type=as_type )+'\n'
             except Exception as e:
                 self.sos_kernel.warn(f'Exception occurred when transferring `{varName}` from Java to {to_kernel}. {e.__str__()}')
