@@ -9,6 +9,7 @@ init_statements = f'''
     %loadFromPOM {os.path.join(__location__, 'pom.xml')}
     import com.fasterxml.jackson.databind.*;
     import javax.json.*;
+    import java.util.stream.*;
 '''+'''
     public JsonObject parseJsonString(String str){
         JsonReader jsonReader = Json.createReader(new StringReader(str));
@@ -585,7 +586,6 @@ class sos_java:
                     typename = type_and_value[0].split('[')[0].split('<')[0]
                     newname = newname + "_" +typename.lower()
                     self.sos_kernel.warn(f'Variable {name} is passed from SoS to kernel {self.kernel_name} already exists as {isUserDefVar} type. Variable is saved as {newname}')
-                
                 result = self.sos_kernel.run_cell(
                     f'{type_and_value[0]} {newname} = {type_and_value[1]};',
                     True,
