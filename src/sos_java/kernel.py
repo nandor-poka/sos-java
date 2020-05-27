@@ -181,7 +181,7 @@ init_statements = f'''
                 return "Unsupported type in list.";
         }
     }
-
+    /*
     public <T1, T2> String getJavaMapTypeValues(Map<T1,T2> map){
         String values = "";
         String keyType = map.entrySet().iterator().next().getKey().getClass().getSimpleName();
@@ -262,7 +262,7 @@ init_statements = f'''
         }
         values = values.substring(0, values.length()-1);
         return values;
-    }  
+    }  */
 '''
 
 # global variables to be used for Java variable conversion
@@ -429,7 +429,7 @@ def _convert_list_to_Java_as_ArrayList(self, var_from_sos, varName):
 
 # Conversions FROM JAVA
 def _java_array_values(self, javaVar):
-    response =  self.sos_kernel.get_response(f'System.out.println( getJavaArrayValues({javaVar}) );', ('stream',), 
+    response =  self.sos_kernel.get_response(f'''System.out.println( getJavaArrayValues({javaVar}) );''', ('stream',), 
         name=('stdout','stderr') )
     if response != []:
         return response[0][1]['text']
@@ -441,7 +441,88 @@ def _java_list_type_values(self, javaVar):
         name=('stdout','stderr') )[0][1]['text'] 
 
 def _java_map_type_values(self, javaVar):
-    result = self.sos_kernel.get_response(f'System.out.println( getJavaMapTypeValues({javaVar}) );', ('stream',), 
+    result = self.sos_kernel.get_response('''public <T1, T2> String getJavaMapTypeValues(Map<T1,T2> map){
+        String values = "";
+        String keyType = map.entrySet().iterator().next().getKey().getClass().getSimpleName();
+        String valueType = ( (Object)map.entrySet().iterator().next().getValue()).getClass().getSimpleName();
+        String keyValue;
+        String valueValue;
+        for (Map.Entry<T1,T2> entry: map.entrySet() ){
+            switch(keyType){
+                case "Byte":
+                    keyValue = entry.getKey().toString();
+                    break;
+                case "Short":
+                    keyValue = entry.getKey().toString();
+                    break;
+                case "Integer":
+                    keyValue = entry.getKey().toString();
+                    break;
+                case "Long":
+                    keyValue = entry.getKey().toString();
+                    break;
+                case "Float":
+                    keyValue = entry.getKey().toString();
+                    break;
+                case "Double":
+                    keyValue = entry.getKey().toString();
+                    break;
+                case "String":
+                    keyValue = "'"+entry.getKey()+"'";
+                    break;
+                case "Boolean":
+                    if(Boolean.parseBoolean(entry.getKey().toString())){   
+                        keyValue = "True,";
+                    }else{
+                        keyValue = "False,";
+                    }
+                    break;
+                default:
+                    keyValue = null;
+                    break;
+            }
+            switch(valueType){
+                case "Byte":
+                    valueValue = entry.getValue().toString();
+                    break;
+                case "Short":
+                    valueValue = entry.getValue().toString();
+                    break;
+                case "Integer":
+                    valueValue = entry.getValue().toString();
+                    break;
+                case "Long":
+                    valueValue = entry.getValue().toString();
+                    break;
+                case "Float":
+                    valueValue = entry.getValue().toString();
+                    break;
+                case "Double":
+                    valueValue = entry.getValue().toString();
+                    break;
+                case "String":
+                    valueValue = "'"+entry.getValue()+"'";
+                    break;
+                case "Boolean":
+                    if(Boolean.parseBoolean(entry.getValue().toString())){   
+                        valueValue = "True";
+                    }else{
+                        valueValue = "False";
+                    }
+                    break;
+                default:
+                    valueValue = null;
+                    break;
+            }
+            if (keyValue == null ||  valueValue == null){
+                return "Unsupported type in Map.";
+            }
+            values += keyValue +":"+valueValue+",";
+        }
+        values = values.substring(0, values.length()-1);
+        return values;
+    }  
+    '''+f'System.out.println( getJavaMapTypeValues({javaVar}) );''', ('stream',), 
         name=('stdout','stderr') )
     if result != []:
         return result[0][1]['text'] 
