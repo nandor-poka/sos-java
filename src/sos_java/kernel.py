@@ -178,10 +178,10 @@ init_statements = f'''
                 values = values.substring(0, values.length()-1);
                 return values;
             default:
-                return "Unsupported type in set.";
+                return "Unsupported type in list.";
         }
     }
-    /*
+    
     public <T1, T2> String getJavaMapTypeValues(Map<T1,T2> map){
         String values = "";
         String keyType = map.entrySet().iterator().next().getKey().getClass().getSimpleName();
@@ -262,7 +262,7 @@ init_statements = f'''
         }
         values = values.substring(0, values.length()-1);
         return values;
-    }  */
+    }  
 '''
 
 # global variables to be used for Java variable conversion
@@ -429,81 +429,7 @@ def _convert_list_to_Java_as_ArrayList(self, var_from_sos, varName):
 
 # Conversions FROM JAVA
 def _java_array_values(self, javaVar):
-    response =  self.sos_kernel.get_response('''    public String getJavaArrayValues(int[] array){
-        String values = "";
-        for (int i=0;i<array.length;++i){
-            values += String.valueOf(array[i])+",";
-        }
-        values = values.substring(0, values.length()-1);
-        return values;
-    }
-    
-    public String getJavaArrayValues(byte[] array){
-        String values = "";
-        for (int i=0;i<array.length;++i){
-            values += String.valueOf(array[i])+",";
-        }
-        values = values.substring(0, values.length()-1);
-        return values;
-    }
-
-    public String getJavaArrayValues(short[] array){
-        String values = "";
-        for (int i=0;i<array.length;++i){
-            values += String.valueOf(array[i])+",";
-        }
-        values = values.substring(0, values.length()-1);
-        return values;
-    }
-
-    public String getJavaArrayValues(float[] array){
-        String values = "";
-        for (int i=0;i<array.length;++i){
-            values += String.valueOf(array[i])+",";
-        }
-        values = values.substring(0, values.length()-1);
-        return values;
-    }
-    
-    public String getJavaArrayValues(double[] array){
-        String values = "";
-        for (int i=0;i<array.length;++i){
-            values += String.valueOf(array[i])+",";
-        }
-        values = values.substring(0, values.length()-1);
-        return values;
-    }
-    
-    public String getJavaArrayValues(long[] array){
-        String values = "";
-        for (int i=0;i<array.length;++i){
-            values += String.valueOf(array[i])+",";
-        }
-        values = values.substring(0, values.length()-1);
-        return values;
-    }
-    
-    public String getJavaArrayValues(boolean[] array){
-        String values = "";
-        for (int i=0;i<array.length;++i){
-            if (array[i]){
-                values += "True,";
-            }else{
-                values += "False,";
-            }
-        }
-        values = values.substring(0, values.length()-1);
-        return values;
-    }
-    
-    public String getJavaArrayValues(String[] array){
-        String values = "";
-        for (int i=0;i<array.length;++i){
-            values += "'"+array[i]+"',";
-        }
-        values = values.substring(0, values.length()-1);
-        return values;
-    } '''+f'System.out.println( getJavaArrayValues({javaVar}) );', ('stream',), 
+    response =  self.sos_kernel.get_response(f'''System.out.println( getJavaArrayValues({javaVar}) );''', ('stream',), 
         name=('stdout','stderr') )
     if response != []:
         return response[0][1]['text']
@@ -511,171 +437,18 @@ def _java_array_values(self, javaVar):
     return []
 
 def _java_list_type_values(self, javaVar):
-    return self.sos_kernel.get_response('''    public <T> String getJavaListTypeValues(List<T> list){
-        String elementType = ((Object)list.get(0)).getClass().getSimpleName();
-        String values = "";
-        switch(elementType){
-            case "Byte":
-                return list.toString();
-            case "Short":
-                return list.toString();
-            case "Integer":
-                return list.toString();
-            case "Long":
-                return list.toString();
-            case "Float":
-                return list.toString();
-            case "Double":
-                return list.toString();
-            case "String":
-                for (int i=0;i<list.size();++i){
-                    values += "'"+list.get(i)+"',";
-                }
-                values = values.substring(0, values.length()-1);
-                return values;
-            case "Boolean":
-                for (int i=0;i<list.size();++i){
-                    if(Boolean.parseBoolean(list.get(i).toString())){   
-                        values += "True,";
-                    }else{
-                         values += "False,";
-                    }
-                }
-                values = values.substring(0, values.length()-1);
-                return values;
-            default:
-                return "Unsupported type in list.";
-        }
-    } '''+f'System.out.println( getJavaListTypeValues({javaVar}) );', ('stream',), 
+    return self.sos_kernel.get_response(f'System.out.println( getJavaListTypeValues({javaVar}) );', ('stream',), 
         name=('stdout','stderr') )[0][1]['text'] 
 
 def _java_map_type_values(self, javaVar):
-    result = self.sos_kernel.get_response('''public <T1, T2> String getJavaMapTypeValues(Map<T1,T2> map){
-        String values = "";
-        String keyType = map.entrySet().iterator().next().getKey().getClass().getSimpleName();
-        String valueType = ( (Object)map.entrySet().iterator().next().getValue()).getClass().getSimpleName();
-        String keyValue;
-        String valueValue;
-        for (Map.Entry<T1,T2> entry: map.entrySet() ){
-            switch(keyType){
-                case "Byte":
-                    keyValue = entry.getKey().toString();
-                    break;
-                case "Short":
-                    keyValue = entry.getKey().toString();
-                    break;
-                case "Integer":
-                    keyValue = entry.getKey().toString();
-                    break;
-                case "Long":
-                    keyValue = entry.getKey().toString();
-                    break;
-                case "Float":
-                    keyValue = entry.getKey().toString();
-                    break;
-                case "Double":
-                    keyValue = entry.getKey().toString();
-                    break;
-                case "String":
-                    keyValue = "'"+entry.getKey()+"'";
-                    break;
-                case "Boolean":
-                    if(Boolean.parseBoolean(entry.getKey().toString())){   
-                        keyValue = "True,";
-                    }else{
-                        keyValue = "False,";
-                    }
-                    break;
-                default:
-                    keyValue = null;
-                    break;
-            }
-            switch(valueType){
-                case "Byte":
-                    valueValue = entry.getValue().toString();
-                    break;
-                case "Short":
-                    valueValue = entry.getValue().toString();
-                    break;
-                case "Integer":
-                    valueValue = entry.getValue().toString();
-                    break;
-                case "Long":
-                    valueValue = entry.getValue().toString();
-                    break;
-                case "Float":
-                    valueValue = entry.getValue().toString();
-                    break;
-                case "Double":
-                    valueValue = entry.getValue().toString();
-                    break;
-                case "String":
-                    valueValue = "'"+entry.getValue()+"'";
-                    break;
-                case "Boolean":
-                    if(Boolean.parseBoolean(entry.getValue().toString())){   
-                        valueValue = "True";
-                    }else{
-                        valueValue = "False";
-                    }
-                    break;
-                default:
-                    valueValue = null;
-                    break;
-            }
-            if (keyValue == null ||  valueValue == null){
-                return "Unsupported type in Map.";
-            }
-            values += keyValue +":"+valueValue+",";
-        }
-        values = values.substring(0, values.length()-1);
-        return values;
-    }  
-    '''+f'System.out.println( getJavaMapTypeValues({javaVar}) );''', ('stream',), 
+    result = self.sos_kernel.get_response(f'System.out.println( getJavaMapTypeValues({javaVar}) );''', ('stream',), 
         name=('stdout','stderr') )
     if result != []:
         return result[0][1]['text'] 
     self.sos_kernel.warn(f'Failed to get map values for {javaVar}.')
     return {}
 def _java_set_type_values(self, javaVar):
-    return self.sos_kernel.get_response('''    public <T> String getJavaSetTypeValues(Set<T> set){
-        Object[] setElementArray = set.toArray();
-        String elementType = setElementArray[0].getClass().getSimpleName();
-        String values = "";
-        switch(elementType){
-            case "Byte":
-                return set.toString();
-            case "Short":
-                return set.toString();
-            case "Integer":
-                return set.toString();
-            case "Long":
-                return set.toString();
-            case "Float":
-                return set.toString();
-            case "Double":
-                return set.toString();
-            case "String":
-                for (int i=0;i<setElementArray.length;++i){
-                    values += "'"+setElementArray[i]+"',";
-                }
-                values = values.substring(0, values.length()-1);
-                return values;
-            case "Boolean":
-                for (int i=0;i<setElementArray.length;++i){
-                    if(Boolean.parseBoolean(setElementArray[i].toString())){   
-                        values += "True,";
-                    }else{
-                         values += "False,";
-                    }
-                    
-                }
-                values = values.substring(0, values.length()-1);
-                return values;
-            default:
-                return "Unsupported type in set.";
-        }
-    } '''+f'System.out.println( getJavaSetTypeValues({javaVar}) );', ('stream',), 
+    return self.sos_kernel.get_response(f'System.out.println( getJavaSetTypeValues({javaVar}) );', ('stream',), 
         name=('stdout','stderr') )[0][1]['text'] 
         
 def _get_java_type_and_value(self, javaVar):
@@ -713,21 +486,7 @@ def _convert_from_java_to_Python(self, javaVar, as_type):
         return f'{javaVar} = '+'('+f'{_java_set_type_values(self, javaVar)}'+')'
 
 def _convertJavaToJSONString(self, javaVar):
-    return self.sos_kernel.get_response(f'%loadFromPOM {os.path.join(__location__, "pom.xml")}'+'''
-    import com.fasterxml.jackson.databind.*;
-    import javax.json.*;
-    public String convertJavaObjectToJsonString(Object obj){
-        try{
-            ObjectMapper mapper = new ObjectMapper();
-            String jsonStr = mapper.writeValueAsString(obj);
-            if (!jsonStr.startsWith("{")){
-                jsonStr = "{\\"value\\":"+jsonStr+"}";
-            }
-            return jsonStr;
-        } catch (Exception ex){
-            return ex.toString();
-        }
-    '''+f'System.out.println( convertJavaObjectToJsonString({javaVar}));', ('stream',), 
+    return self.sos_kernel.get_response(f'System.out.println( convertJavaObjectToJsonString({javaVar}));', ('stream',), 
         name=('stdout','stderr') )[0][1]['text']
 
 def _convert_from_java_to_SoS(self, javaVar, as_type):
