@@ -429,8 +429,12 @@ def _convert_list_to_Java_as_ArrayList(self, var_from_sos, varName):
 
 # Conversions FROM JAVA
 def _java_array_values(self, javaVar):
-    return self.sos_kernel.get_response(f'System.out.println( getJavaArrayValues({javaVar}) );', ('stream',), 
-        name=('stdout','stderr') )[0][1]['text']
+    response =  self.sos_kernel.get_response(f'System.out.println( getJavaArrayValues({javaVar}) );', ('stream',), 
+        name=('stdout','stderr') )
+    if response != []:
+        return response[0][1]['text']
+    self.sos_kernel.warn(f'Failed to get array values for {javaVar}.')
+    return []
 
 def _java_list_type_values(self, javaVar):
     return self.sos_kernel.get_response(f'System.out.println( getJavaListTypeValues({javaVar}) );', ('stream',), 
