@@ -441,9 +441,12 @@ def _java_list_type_values(self, javaVar):
         name=('stdout','stderr') )[0][1]['text'] 
 
 def _java_map_type_values(self, javaVar):
-    return self.sos_kernel.get_response(f'System.out.println( getJavaMapTypeValues({javaVar}) );', ('stream',), 
-        name=('stdout','stderr') )[0][1]['text'] 
-
+    result = self.sos_kernel.get_response(f'System.out.println( getJavaMapTypeValues({javaVar}) );', ('stream',), 
+        name=('stdout','stderr') )
+    if result != []:
+        return result[0][1]['text'] 
+    self.sos_kernel.warn(f'Failed to get map values for {javaVar}.')
+    return {}
 def _java_set_type_values(self, javaVar):
     return self.sos_kernel.get_response(f'System.out.println( getJavaSetTypeValues({javaVar}) );', ('stream',), 
         name=('stdout','stderr') )[0][1]['text'] 
@@ -462,7 +465,6 @@ def _convert_from_java_to_Python(self, javaVar, as_type):
     if as_type != None and as_type.lower() == 'json':
         return f'{javaVar} = json.loads(\'{_convertJavaToJSONString(self, javaVar)}\')'
     javaVarTypeAndValue = _get_java_type_and_value(self, javaVar)
-    self.sos_kernel.warn(javaVarTypeAndValue)
     if javaVarTypeAndValue["type"] in _javaNumericTypes:
         return f'{javaVar} = {javaVarTypeAndValue["value"]}\n'
     if javaVarTypeAndValue["type"] in _javaStringTypes:
