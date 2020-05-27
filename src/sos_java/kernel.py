@@ -455,7 +455,7 @@ def _get_java_type_and_value(self, javaVar):
         self.sos_kernel.warn(f'Exception occured when determining Java type of {javaVar}. {e.__str__()}')
 
 def _convert_from_java_to_Python(self, javaVar, as_type):
-    if as_type.lower() == 'json':
+    if as_type != None and as_type.lower() == 'json':
         return f'{javaVar} = json.loads(\'{_convertJavaToJSONString(self, javaVar)}\')'
     javaVarTypeAndValue = _get_java_type_and_value(self, javaVar)
     if javaVarTypeAndValue["type"] in _javaNumericTypes:
@@ -482,7 +482,7 @@ def _convertJavaToJSONString(self, javaVar):
         name=('stdout','stderr') )[0][1]['text']
 
 def _convert_from_java_to_SoS(self, javaVar, as_type):
-    if as_type == 'json':
+    if as_type != None and as_type.lower() == 'json':
         return f'\'{_convertJavaToJSONString(self, javaVar)}\''
     javaVarTypeAndValue = _get_java_type_and_value(self, javaVar)
     if javaVarTypeAndValue["type"] in _javaNumericTypes:
