@@ -596,7 +596,7 @@ class sos_java:
             try:
                 for varName in items:
                     varName = varName.rstrip(',')
-                    #self.sos_kernel.warn(_convert_from_java_to_Python(self, varName, as_type=as_type ))
+                    self.sos_kernel.warn(_convert_from_java_to_Python(self, varName, as_type=as_type ))
                     pythonCmd += _convert_from_java_to_Python(self, varName, as_type=as_type )+'\n'
             except Exception as e:
                 self.sos_kernel.warn(f'Exception occurred when transferring `{varName}` from Java to {to_kernel}. {e.__str__()}')
