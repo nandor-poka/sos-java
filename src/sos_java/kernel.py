@@ -713,7 +713,7 @@ def _convert_from_java_to_Python(self, javaVar, as_type):
         return f'{javaVar} = '+'('+f'{_java_set_type_values(self, javaVar)}'+')'
 
 def _convertJavaToJSONString(self, javaVar):
-    return self.sos_kernel.get_response(f'%loadFromPOM {os.path.join(__location__, 'pom.xml')}'+'''
+    return self.sos_kernel.get_response(f'%loadFromPOM {os.path.join(__location__, "pom.xml")}'+'''
     import com.fasterxml.jackson.databind.*;
     import javax.json.*;
     public String convertJavaObjectToJsonString(Object obj){
