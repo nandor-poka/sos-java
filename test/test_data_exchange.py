@@ -33,10 +33,11 @@ class TestDataExchange(NotebookTest):
     def test_get_none(self, notebook):
         result = self.get_from_SoS(notebook, 'None')
         assert 'null' == result
-    '''
+    
     def test_put_null(self, notebook):
-        assert 'None' == self.put_to_SoS(notebook, 'NULL')
-
+        assert 'None' == self.put_to_SoS(notebook, 'Void nullVar = null;')
+        
+    '''
     def test_get_numpy_inf(self, notebook):
         notebook.call('import numpy', kernel='SoS')
         assert 'Inf' == self.get_from_SoS(notebook, 'numpy.inf')

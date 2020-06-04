@@ -454,9 +454,15 @@ def _java_set_type_values(self, javaVar):
         
 def _get_java_type_and_value(self, javaVar):
     try:
-        javaVarType = self.sos_kernel.get_response(f'System.out.println(((Object){javaVar}).getClass().getSimpleName());', ('stream',), 
+        javaVarType = self.sos_kernel.get_response('try{System.out.println(((Object)'+f'{javaVar}'+''').getClass().getSimpleName());
+                                                    }catch (NullPointerException e){
+                                                        System.out.println("Void");
+                                                    }''', ('stream',), 
         name=('stdout','stderr') )[0][1]['text']
-        javaVarValue = self.sos_kernel.get_response(f'System.out.println({javaVar});', ('stream',), 
+        javaVarValue = self.sos_kernel.get_response('try{System.out.println('+f'{javaVar}'+''');
+                                                    }catch (NullPointerException e){
+                                                        System.out.println("null");
+                                                    }''', ('stream',), 
         name=('stdout', ' stderr') )[0][1]['text']
         return {'type':javaVarType, 'value':javaVarValue}
     except Exception as e:
@@ -466,6 +472,8 @@ def _convert_from_java_to_Python(self, javaVar, as_type):
     if as_type != None and as_type.lower() == 'json':
         return f'{javaVar} = json.loads(\'{_convertJavaToJSONString(self, javaVar)}\')'
     javaVarTypeAndValue = _get_java_type_and_value(self, javaVar)
+    if javaVarTypeAndValue["type"] == 'Void':
+        return f'{javaVar} = None\n'
     if javaVarTypeAndValue["type"] in _javaNumericTypes:
         return f'{javaVar} = {javaVarTypeAndValue["value"]}\n'
     if javaVarTypeAndValue["type"] in _javaStringTypes:
@@ -494,6 +502,8 @@ def _convert_from_java_to_SoS(self, javaVar, as_type):
     if as_type != None and as_type.lower() == 'json':
         return f'\'{_convertJavaToJSONString(self, javaVar)}\''
     javaVarTypeAndValue = _get_java_type_and_value(self, javaVar)
+    if javaVarTypeAndValue["type"] == 'Void':
+        return f'None'
     if javaVarTypeAndValue["type"] in _javaNumericTypes:
        return f'{javaVarTypeAndValue["value"]}'
     if javaVarTypeAndValue["type"] in _javaStringTypes:
