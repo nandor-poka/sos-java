@@ -30,6 +30,7 @@ class TestInterface(NotebookTest):
             kernel="SoS",
             expect_error=True)
         assert '5' == notebook.check_output('System.out.println(varName)', kernel='Java')
+
     def test_var_name_with_captial_letter(self, notebook):
         '''Test  CapitalStart -> capitalStart'''
         notebook.call(
@@ -50,33 +51,17 @@ class TestInterface(NotebookTest):
             value is {var + 2}
             ''',
             kernel='Markdown')
-       # assert 'value is 102' in notebook.check_output(
-       #     '''\
-       #     %expand `java ` --in java
-       #     value is `java var + 2`
-       #     ''',
-       #     kernel='Markdown')
 
-    #def test_preview(self, notebook):
-    #    '''Test support for %preview'''
-    #    output = notebook.check_output(
-    #        '''\
-    #        %preview -n var
-    #        var = seq(1, 1000)
-    #       ''',
-    #        kernel="R")
-        # in a normal var output, 100 would be printed. The preview version would show
-        # type and some of the items in the format of
-        #   int [1:1000] 1 2 3 4 5 6 7 8 9 10 ...
-    #    assert 'int' in output and '3' in output and '9' in output and '111' not in output
-        #
-        # return 'Unknown variable' for unknown variable
-    #    assert 'Unknown variable' in notebook.check_output(
-    #        '%preview -n unknown_var', kernel="R")
-        #
-        # return 'Unknown variable for expression
-    #    assert 'Unknown variable' in notebook.check_output(
-    #        '%preview -n var[1]', kernel="R")
+
+    def test_preview(self, notebook):
+        '''Test support for %preview'''
+        output = notebook.check_output(
+            '''\
+            %preview -n var
+            int var = 102;
+           ''',
+            kernel="Java")
+        assert '> var: Integer'in output and '102' in output 
 
     def test_sessioninfo(self, notebook):
         '''test support for %sessioninfo'''
