@@ -8,61 +8,73 @@ import random
 import time
 
 class TestDataExchange(NotebookTest):
-    def _var_name(self):
-        if not hasattr(self, '_var_idx'):
-            self._var_idx = 0
-        self._var_idx += 1
-        return f'var{self._var_idx}'
 
-    def get_from_SoS(self, notebook, sos_expr):
-        var_name = self._var_name()
+    def get_from_SoS(self, notebook, var_name, sos_expr):
         notebook.call(f'{var_name} = {sos_expr}', kernel='SoS')
         return notebook.check_output(f'''\
             %get {var_name}
             System.out.println({var_name})''', kernel='Java')
 
-    def put_to_SoS(self, notebook, javaExpr):
-        var_name = self._var_name()
+    def put_to_SoS(self, notebook, var_name,javaExpr):
+
         notebook.call(f'''\
             %put {var_name}
             {javaExpr}
-            ''',
-                      kernel='Java')
+            ''', kernel='Java')
         return notebook.check_output(f'print(repr({var_name}))', kernel='SoS')
 
     def test_get_none(self, notebook):
-        result = self.get_from_SoS(notebook, 'None')
+        var_name = 'nullVar'
+        result = self.get_from_SoS(notebook, var_name, 'None')
         assert 'null' == result
     
     def test_put_null(self, notebook):
-        assert 'None' == self.put_to_SoS(notebook, 'Void nullVar = null;')
+        var_name = 'nullVar'
+        assert 'None' == self.put_to_SoS(notebook, var_name, f'Void {var_name} = null;')
         
-    '''
+    
     def test_get_numpy_inf(self, notebook):
+        var_name = 'infVar'
         notebook.call('import numpy', kernel='SoS')
-        assert 'Inf' == self.get_from_SoS(notebook, 'numpy.inf')
-
+        assert 'Infinity' == self.get_from_SoS(notebook, var_name, 'numpy.inf')
+    
     def test_put_inf(self, notebook):
-        assert 'inf' == self.put_to_SoS(notebook, 'Inf')
+        var_name = 'infVar'
+        assert 'inf' == self.put_to_SoS(notebook, var_name, f'double {var_name} = Double.POSITIVE_INFINITY')
+    
+    def test_get_nan(self, notebook):
+        var_name = 'nanVar'
+        assert 'NaN' == self.get_from_SoS(notebook, var_name, 'float("nan")')    
+    
+    def test_put_nan(self, notebook):
+        var_name = 'nanVar'
+        assert 'nan' == self.put_to_SoS(notebook, var_name, f'double {var_name} = Double.NaN')
+    
+    def test_get_int1(self, notebook):
+        var_name = 'intVar'
+        assert '123' == self.get_from_SoS(notebook, var_name, '123')
+        
 
-    def test_get_int(self, notebook):
-        assert '123' == self.get_from_SoS(notebook, '123')
-        assert '1234567891234' == self.get_from_SoS(
-            notebook, '1234567891234')
-        # longer int does not gurantee precision any more, I am not sure
-        # if the following observation will be consistent (784 vs 789)
-        assert '123456789123456784' == self.get_from_SoS(
-            notebook, '123456789123456789')
+    def test_get_int2(self, notebook):
+        var_name = 'longVar'
+        assert '1234567891234' == self.get_from_SoS(notebook, var_name, '1234567891234')
 
-    def test_put_int(self, notebook):
-        assert '123' == self.put_to_SoS(notebook, '123')
-        assert '1234567891234' == self.put_to_SoS(
-            notebook, '1234567891234')
-        # longer int does not gurantee precision any more, I am not sure
-        # if the following observation will be consistent (784 vs 789)
-        assert '123456789123456784' == self.put_to_SoS(
-            notebook, '123456789123456789')
+    def test_get_int3(self, notebook):
+        var_name = 'longVar'
+        assert '123456789123456789' == self.get_from_SoS(notebook, var_name, '123456789123456789')
 
+    
+    def test_put_int1(self, notebook):
+        var_name = 'intVar'
+        assert '123' == self.put_to_SoS(notebook, var_name, f'int {var_name} = 123')
+    def test_put_int2(self, notebook):
+        var_name = 'longVar'
+        assert '1234567891234' == self.put_to_SoS(notebook, var_name, f'long {var_name} = 1234567891234L')
+    
+    def test_put_int3(self, notebook):
+        var_name = 'longVar'
+        assert '123456789123456789' == self.put_to_SoS(notebook, var_name, f'long {var_name} = 123456789123456789L')
+    '''
     def test_get_double(self, notebook):
         # FIXME: can we improve the precision here? Passing float as string
         # is certainly a bad idea.
