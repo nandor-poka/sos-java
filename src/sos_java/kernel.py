@@ -303,7 +303,7 @@ def _convert_None_to_Java(self, var_from_sos, varName):
 
 def _convert_Integers_to_Java(self, var_from_sos, varName):
     if var_from_sos < -2**31 or var_from_sos > 2**31-1:
-            return ['long', repr(var_from_sos)]    
+            return ['long', repr(var_from_sos)+'L']    
     return ['int', repr(var_from_sos)]
 
 def _convert_bool_to_Java(self, var_from_sos, varName):
@@ -475,6 +475,12 @@ def _convert_from_java_to_Python(self, javaVar, as_type):
     if javaVarTypeAndValue["type"] == 'Void':
         return f'{javaVar} = None\n'
     if javaVarTypeAndValue["type"] in _javaNumericTypes:
+        if javaVarTypeAndValue["value"] == 'Infinity':
+            return f"{javaVar} = float('inf')\n"
+        if javaVarTypeAndValue["value"] == '-Infinity':
+            return f"{javaVar} = float('-inf')\n"
+        if javaVarTypeAndValue["value"] == 'NaN':
+            return f"{javaVar} = float('nan')\n"
         return f'{javaVar} = {javaVarTypeAndValue["value"]}\n'
     if javaVarTypeAndValue["type"] in _javaStringTypes:
         return f'{javaVar} = "{javaVarTypeAndValue["value"]}"\n'
@@ -505,7 +511,13 @@ def _convert_from_java_to_SoS(self, javaVar, as_type):
     if javaVarTypeAndValue["type"] == 'Void':
         return f'None'
     if javaVarTypeAndValue["type"] in _javaNumericTypes:
-       return f'{javaVarTypeAndValue["value"]}'
+        if javaVarTypeAndValue["value"] == 'Infinity':
+            return "float('inf')"
+        if javaVarTypeAndValue["value"] == '-Infinity':
+            return "float('-inf')"
+        if javaVarTypeAndValue["value"] == 'NaN':
+            return "float('nan')"
+        return f'{javaVarTypeAndValue["value"]}'
     if javaVarTypeAndValue["type"] in _javaStringTypes:
        return f'"{javaVarTypeAndValue["value"]}"'
     if javaVarTypeAndValue["type"] in _javaBooleanTypes:
@@ -589,7 +601,6 @@ class sos_java:
                     if newname in sos_java.java_vars and sos_java.java_vars[newname] != type_and_value[0]:
                         oldname = newname
                         typename = type_and_value[0].split('[')[0].split('<')[0]
-                        
                         newname = newname + "_" +typename
                         self.sos_kernel.warn(f'Variable {name} is passed from SoS to kernel {self.kernel_name} already exists as {sos_java.java_vars[oldname]} type. Variable is saved as {newname}')
                     result = self.sos_kernel.run_cell(
