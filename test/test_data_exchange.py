@@ -133,16 +133,26 @@ class TestDataExchange(NotebookTest):
         var_name = 'putIntArray'
         assert '[1]' == self.put_to_SoS(notebook, var_name, f'int[] {var_name}'+' = new int[]{1}')
 
+    def test_put_int_array2(self, notebook):
+        var_name = 'putIntArray'
+        assert '[1, 2, 3, 4, 5, 6]' == self.put_to_SoS(notebook, var_name, f'int[] {var_name}'+' = new int[]{1,2,3,4,5,6}')
+
+    def test_get_logic_array1(self, notebook):
+        var_name = 'boolArray'
+        assert '[true]' == self.get_from_SoS(notebook, var_name, '[True]')
+    
+    def test_get_logic_array2(self, notebook):
+        var_name = 'boolArray'
+        assert '[true, false, false, true]' == self.get_from_SoS(notebook, var_name, '[True, False, False, True]')
+
+    def test_put_logic_array1(self, notebook):
+        var_name = 'putBoolArray'
+        assert '[True]' == self.put_to_SoS(notebook, var_name,  f'boolean[]{var_name}= new boolean[]'+'{true};')
+
+    def test_put_logic_array2(self, notebook):
+        var_name = 'putBoolArray'
+        assert '[True, False, True, False]' == self.put_to_SoS(notebook, var_name,  f'boolean[]{var_name}= new boolean[]'+'{true, false, true,false};')
     '''
-    def test_get_logic_array(self, notebook):
-        assert 'TRUE' == self.get_from_SoS(notebook, '[True]')
-        assert 'TRUE FALSE TRUE' == self.get_from_SoS(notebook, '[True, False, True]')
-
-    def test_put_logic_array(self, notebook):
-        # Note that single element numeric array is treated as single value
-        assert 'True' == self.put_to_SoS(notebook, 'c(TRUE)')
-        assert '[True, False, True]' == self.put_to_SoS(notebook, 'c(TRUE, FALSE, TRUE)')
-
     def test_get_str(self, notebook):
         assert "'ab c d'" == self.get_from_SoS(notebook, "'ab c d'")
         assert "'ab\\td'" == self.get_from_SoS(notebook, r"'ab\td'")
