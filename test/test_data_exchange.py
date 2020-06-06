@@ -10,6 +10,10 @@ class TestDataExchange(NotebookTest):
 
     def get_from_SoS(self, notebook, var_name, sos_expr):
         notebook.call(f'{var_name} = {sos_expr}', kernel='SoS')
+        if 'Array' in var_name:
+            return notebook.check_output(f'''\
+            %get {var_name}
+            System.out.println(Arrays.toString({var_name}))''', kernel='Java')
         return notebook.check_output(f'''\
             %get {var_name}
             System.out.println({var_name})''', kernel='Java')
@@ -116,22 +120,20 @@ class TestDataExchange(NotebookTest):
         var_name = 'putBoolVar'
         assert 'False' == self.put_to_SoS(notebook, var_name,f'boolean {var_name} = false;')
     
+    
+    def test_get_int_array1(self, notebook):
+        var_name = 'intArray'
+        assert '[1]' == self.get_from_SoS(notebook, var_name,'[1]')
+
+    def test_get_int_array2(self, notebook):
+        var_name = 'intArray'
+        assert '[1, 2, 3, 4, 5]' == self.get_from_SoS(notebook, var_name,'[1, 2, 3, 4, 5]')
+
+    def test_put_int_array1(self, notebook):
+        var_name = 'putIntArray'
+        assert '[1]' == self.put_to_SoS(notebook, var_name, f'int[] {var_name}'+' = new int[]{1}')
+
     '''
-    def test_get_num_array(self, notebook):
-        assert '1' == self.get_from_SoS(notebook, '[1]')
-        assert '1 2' == self.get_from_SoS(notebook, '[1, 2]')
-        #
-        assert '1.23' == self.get_from_SoS(notebook, '[1.23]')
-        assert '1.4 2' == self.get_from_SoS(notebook, '[1.4, 2]')
-
-    def test_put_num_array(self, notebook):
-        # Note that single element numeric array is treated as single value
-        assert '1' == self.put_to_SoS(notebook, 'c(1)')
-        assert '[1, 2]' == self.put_to_SoS(notebook, 'c(1, 2)')
-        #
-        assert '1.23' == self.put_to_SoS(notebook, 'c(1.23)')
-        assert '[1.4, 2]' == self.put_to_SoS(notebook, 'c(1.4, 2)')
-
     def test_get_logic_array(self, notebook):
         assert 'TRUE' == self.get_from_SoS(notebook, '[True]')
         assert 'TRUE FALSE TRUE' == self.get_from_SoS(notebook, '[True, False, True]')

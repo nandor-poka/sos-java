@@ -297,6 +297,7 @@ def _check_user_variables(self, varName):
         return self.sos_kernel.get_response(f'System.out.println( (Object){varName}.getClass().getSimpleName() );', ('stream',), 
         name=('stdout','stderr') )[0][1]['text']
     return None
+
 # Conversions TO JAVA
 def _convert_None_to_Java(self, var_from_sos, varName):
      return ['Void','null']
@@ -312,12 +313,22 @@ def _convert_bool_to_Java(self, var_from_sos, varName):
 def _convert_string_to_Java(self, var_from_sos, varName):
     return ['String', '"'+var_from_sos+'"']
 
+def _convert_float_to_Java(self, var_from_sos, varName):
+    # Checking for NaN, +/- infinity before returning actual value
+    if math.isnan(var_from_sos):
+        return ['Double', 'Double.NaN']
+    if var_from_sos == float('-inf'):
+        return ['Double', 'Double.NEGATIVE_INFINITY']
+    if var_from_sos == float('inf'):
+        return ['Double', 'Double.POSITIVE_INFINITY']
+    return ['double', repr(var_from_sos)]
+
 def _convert_tuple_to_Java(self, var_from_sos, varName):
     if not _check_type_homogeneity_in_collection(var_from_sos):
         print(f'Java does not support collections (eg. Sets, Lists, Maps) with heterogenous types.')
         return None
     # At this point the tuple is homogenous at the first level of elements, thus the 1st element type applies to all
-    converter = _typeToConverterSwitchPythonToJava[type(var_from_sos[0])]
+    converter = _typeToConverterSwitchPythonToJava[str(type(var_from_sos[0])).split("'")[1]]
     # Non-collection types can be converted directly, this means that the tuple is a tuple of primitives (more generally non collection type)
     if type(var_from_sos[0])not in (tuple, list, dict):
         # Primitive Java numeric types need to be converted to their Boxing type. Eg. int -> Integer.
@@ -351,16 +362,6 @@ def _convert_tuple_to_Java(self, var_from_sos, varName):
         setInitString += ').collect(Collectors.toCollection(HashSet::new));'
         setInitString = setInitString.replace('<T>',f'<{elementTypeInJava}>')
         return [f'HashSet<{elementTypeInJava}>', setInitString]
-
-def _convert_float_to_Java(self, var_from_sos, varName):
-    # Checking for NaN, +/- infinity before returning actual value
-    if math.isnan(var_from_sos):
-        return ['Double', 'Double.NaN']
-    if var_from_sos == float('-inf'):
-        return ['Double', 'Double.NEGATIVE_INFINITY']
-    if var_from_sos == float('inf'):
-        return ['Double', 'Double.POSITIVE_INFINITY']
-    return ['double', repr(var_from_sos)]
     
 def _convert_dict_to_Java(self, var_from_sos, varName):
     if not _check_type_homogeneity_in_collection(var_from_sos.keys()):
@@ -373,8 +374,8 @@ def _convert_dict_to_Java(self, var_from_sos, varName):
     items_iterator = iter(items)
     fistItem = next(items_iterator)
     # At this point the map is homogenous at the first level of elements, thus the 1st element type applies to all
-    keys_converter = _typeToConverterSwitchPythonToJava[type(fistItem[0])]
-    values_converter = _typeToConverterSwitchPythonToJava[type(fistItem[1])]
+    keys_converter = _typeToConverterSwitchPythonToJava[str(type(fistItem[0])).split("'")[1]]
+    values_converter = _typeToConverterSwitchPythonToJava[str(type(fistItem[1])).split("'")[1]]
     if type(fistItem[0]) not in (tuple, list, dict):
          # Primitive Java numeric types need to be converted to their Boxing type. Eg. int -> Integer.
         keys_rawTypeInJava = keys_converter(self,fistItem[0], varName )[0]
@@ -398,8 +399,7 @@ def _convert_list_to_Java(self, var_from_sos, varName):
         self.sos_kernel.warn(f'Java does not support collections (eg. Sets, Lists, Maps) with heterogenous types. Keys in {varName} are of not the same types.')
         return None
     # At this point the list is homogenous at the first level of elements, thus the 1st element type applies to all
-    converter = _typeToConverterSwitchPythonToJava[type(var_from_sos[0])]
-    # Primitive Java numeric types need to be converted to their Boxing type. Eg. int -> Integer.
+    converter = _typeToConverterSwitchPythonToJava[str(type(var_from_sos[0])).split("'")[1]]
     rawTypeInJava = converter(self,var_from_sos[0], varName )[0]
     listInitString = f'new {rawTypeInJava}[]'+'{' 
     for item in  var_from_sos:
@@ -415,7 +415,7 @@ def _convert_list_to_Java_as_ArrayList(self, var_from_sos, varName):
         self.sos_kernel.warn(f'Java does not support collections (eg. Sets, Lists, Maps) with heterogenous types. Keys in {varName} are of not the same types.')
         return None
     # At this point the list is homogenous at the first level of elements, thus the 1st element type applies to all
-    converter = _typeToConverterSwitchPythonToJava[type(var_from_sos[0])]
+    converter = _typeToConverterSwitchPythonToJava[str(type(var_from_sos[0])).split("'")[1]]
     # Primitive Java numeric types need to be converted to their Boxing type. Eg. int -> Integer.
     rawTypeInJava = converter(self,var_from_sos[0], varName )[0]
     elementTypeInJava = _Java_primitive_to_BoxingClass[rawTypeInJava] if rawTypeInJava in ('int', 'float', 'double', 'byte') else rawTypeInJava
@@ -607,11 +607,11 @@ class sos_java:
                         f'{type_and_value[0]} {newname} = {type_and_value[1]};',
                         True,
                         False,
-                        on_error=f'Failed to get variable {name} to Java, could not convert to Java type.')
+                        on_error=f'Failed to get variable {name}, could not convert to Java type.')
                     if result["status"] == 'ok':
                         sos_java.java_vars[newname] = type_and_value[0]
         except Exception as e:
-            self.sos_kernel.warn(f'''Failed to get variable {name} to Java, could not convert to Java type.\n
+            self.sos_kernel.warn(f'''Failed to get variable {name}, could not convert to Java type.\n
 The following exception occured: {e}\n''')
 
     def put_vars(self, items, to_kernel=None, as_type=None):
