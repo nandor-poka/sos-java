@@ -97,15 +97,26 @@ class TestDataExchange(NotebookTest):
     def test_put_double3(self, notebook):
         var_name = 'putoubleVar'
         assert '1e-16' == self.put_to_SoS(notebook, var_name, f'double {var_name} = 1e-16')
-    '''
-    def test_get_logic(self, notebook):
-        assert 'TRUE' == self.get_from_SoS(notebook, 'True')
-        assert 'FALSE' == self.get_from_SoS(notebook, 'False')
     
-    def test_put_logic(self, notebook):
-        assert 'True' == self.put_to_SoS(notebook, 'TRUE')
-        assert 'False' == self.put_to_SoS(notebook, 'FALSE')
+    def test_get_logic_true(self, notebook):
+        var_name = 'boolVar'
+        assert 'true' == self.get_from_SoS(notebook, var_name, 'True')
+        
 
+    def test_get_logic_false(self, notebook):
+        var_name = 'boolVar'
+        assert 'false' == self.get_from_SoS(notebook, var_name, 'False')
+
+    def test_put_logic_true(self, notebook):
+        var_name = 'putBoolVar'
+        assert 'True' == self.put_to_SoS(notebook, var_name,f'boolean {var_name} = true;')
+
+
+    def test_put_logic_false(self, notebook):
+        var_name = 'putBoolVar'
+        assert 'False' == self.put_to_SoS(notebook, var_name,f'boolean {var_name} = false;')
+    
+    '''
     def test_get_num_array(self, notebook):
         assert '1' == self.get_from_SoS(notebook, '[1]')
         assert '1 2' == self.get_from_SoS(notebook, '[1, 2]')
