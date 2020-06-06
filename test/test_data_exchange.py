@@ -4,7 +4,6 @@
 # Distributed under the terms of the 3-clause BSD License.
 
 from sos_notebook.test_utils import NotebookTest
-import random
 import time
 
 class TestDataExchange(NotebookTest):
@@ -29,7 +28,7 @@ class TestDataExchange(NotebookTest):
         assert 'null' == result
     
     def test_put_null(self, notebook):
-        var_name = 'nullVar'
+        var_name = 'putnullVar'
         assert 'None' == self.put_to_SoS(notebook, var_name, f'Void {var_name} = null;')
         
     
@@ -39,7 +38,7 @@ class TestDataExchange(NotebookTest):
         assert 'Infinity' == self.get_from_SoS(notebook, var_name, 'numpy.inf')
     
     def test_put_inf(self, notebook):
-        var_name = 'infVar'
+        var_name = 'putinfVar'
         assert 'inf' == self.put_to_SoS(notebook, var_name, f'double {var_name} = Double.POSITIVE_INFINITY')
     
     def test_get_nan(self, notebook):
@@ -47,7 +46,7 @@ class TestDataExchange(NotebookTest):
         assert 'NaN' == self.get_from_SoS(notebook, var_name, 'float("nan")')    
     
     def test_put_nan(self, notebook):
-        var_name = 'nanVar'
+        var_name = 'putnanVar'
         assert 'nan' == self.put_to_SoS(notebook, var_name, f'double {var_name} = Double.NaN')
     
     def test_get_int1(self, notebook):
@@ -62,33 +61,47 @@ class TestDataExchange(NotebookTest):
     def test_get_int3(self, notebook):
         var_name = 'longVar'
         assert '123456789123456789' == self.get_from_SoS(notebook, var_name, '123456789123456789')
-
     
     def test_put_int1(self, notebook):
-        var_name = 'intVar'
+        var_name = 'putintVar'
         assert '123' == self.put_to_SoS(notebook, var_name, f'int {var_name} = 123')
+
     def test_put_int2(self, notebook):
-        var_name = 'longVar'
+        var_name = 'putlongVar'
         assert '1234567891234' == self.put_to_SoS(notebook, var_name, f'long {var_name} = 1234567891234L')
     
     def test_put_int3(self, notebook):
-        var_name = 'longVar'
+        var_name = 'putlongVar'
         assert '123456789123456789' == self.put_to_SoS(notebook, var_name, f'long {var_name} = 123456789123456789L')
+    
+    def test_get_pos_double1(self, notebook):
+        var_name = 'doubleVar'
+        assert '1.0E-9' == self.get_from_SoS(notebook, var_name, '1e-09')
+
+    def test_put_double1(self, notebook):
+        var_name = 'putdoubleVar'
+        assert '1e-09' == self.put_to_SoS(notebook, var_name, f'double {var_name} = 1e-09')
+
+    def test_get_pos_double2(self, notebook):
+        var_name = 'doubleVar'
+        assert '1.0E-12' == self.get_from_SoS(notebook, var_name, '1e-12')
+
+    def test_put_double2(self, notebook):
+        var_name = 'putdoubleVar'
+        assert '1e-12' == self.put_to_SoS(notebook, var_name, f'double {var_name} = 1e-12')
+
+    def test_get_pos_double3(self, notebook):
+        var_name = 'doubleVar'
+        assert '1.0E-16' == self.get_from_SoS(notebook, var_name, '1e-16')
+
+    def test_put_double3(self, notebook):
+        var_name = 'putoubleVar'
+        assert '1e-16' == self.put_to_SoS(notebook, var_name, f'double {var_name} = 1e-16')
     '''
-    def test_get_double(self, notebook):
-        # FIXME: can we improve the precision here? Passing float as string
-        # is certainly a bad idea.
-        val = str(random.random())
-        assert abs(float(val) - float(self.get_from_SoS(notebook, val))) < 1e-10
-
-    def test_put_double(self, notebook):
-        val = str(random.random())
-        assert abs(float(val) - float(self.put_to_SoS(notebook, val))) < 1e-10
-
     def test_get_logic(self, notebook):
         assert 'TRUE' == self.get_from_SoS(notebook, 'True')
         assert 'FALSE' == self.get_from_SoS(notebook, 'False')
-
+    
     def test_put_logic(self, notebook):
         assert 'True' == self.put_to_SoS(notebook, 'TRUE')
         assert 'False' == self.put_to_SoS(notebook, 'FALSE')
