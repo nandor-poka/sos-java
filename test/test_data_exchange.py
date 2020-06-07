@@ -169,11 +169,16 @@ class TestDataExchange(NotebookTest):
         var_name = 'putDictVar'
         assert "{'a': 1, 'b': 2, 'c': 3}" == self.put_to_SoS(notebook, var_name, f'HashMap<String, Integer>{var_name} = new HashMap<String, Integer>();'
         +f'{var_name}.put("a",1);{var_name}.put("b",2);{var_name}.put("c",3)')
+    
+    def test_get_tuple(self, notebook):
+        var_name = 'setVar'
+        assert "[1, 2, 3, 4]" == self.get_from_SoS(notebook, var_name, "(1, 2, 3, 4)")
+    
+    def test_put_set(self, notebook):
+        var_name = 'putSetVar'
+        assert '[1, 2, 3, 4, 5]' == self.put_to_SoS(notebook, var_name, f'HashSet<Integer> {var_name} = new HashSet<Integer>();'
+        +f'{var_name}.add(1);{var_name}.add(2);{var_name}.add(3);{var_name}.add(4);{var_name}.add(5);')
     '''
-    def test_get_set(self, notebook):
-        output = self.get_from_SoS(notebook, "{1.5, 'abc'}")
-        assert "1.5\n'abc'" == output or "'abc'\n1.5" == output
-
     def test_put_unnamed_list(self, notebook):
         output = self.put_to_SoS(notebook, "list(1.5, 'abc')")
         assert "[1.5, 'abc']" == output or "['abc', 1.5]" == output
