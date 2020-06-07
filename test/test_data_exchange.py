@@ -152,15 +152,16 @@ class TestDataExchange(NotebookTest):
     def test_put_logic_array2(self, notebook):
         var_name = 'putBoolArray'
         assert '[True, False, True, False]' == self.put_to_SoS(notebook, var_name,  f'boolean[]{var_name}= new boolean[]'+'{true, false, true,false};')
-    '''
-    def test_get_str(self, notebook):
-        assert "'ab c d'" == self.get_from_SoS(notebook, "'ab c d'")
-        assert "'ab\\td'" == self.get_from_SoS(notebook, r"'ab\td'")
+    
+    def test_get_str1(self, notebook):
+        var_name = 'stringVar'
+        assert "ab c d" == self.get_from_SoS(notebook, var_name, "'ab c d'")
 
     def test_put_str(self, notebook):
-        assert "'ab c d'" == self.put_to_SoS(notebook, "'ab c d'")
-        assert "'ab\\td'" == self.put_to_SoS(notebook, r"'ab\td'")
+        var_name = 'putStringVar'
+        assert "'ab c d'" == self.put_to_SoS(notebook,var_name, f'String {var_name}= "ab c d"')
 
+    '''
     def test_get_mixed_list(self, notebook):
         assert "1.4\nTRUE\n'asd'" == self.get_from_SoS(notebook, '[1.4, True, "asd"]')
 
