@@ -382,7 +382,7 @@ def _convert_dict_to_Java(self, var_from_sos, varName):
         keys_elementTypeInJava = _Java_primitive_to_BoxingClass[keys_rawTypeInJava] if keys_rawTypeInJava in ('int', 'float', 'double', 'byte') else keys_rawTypeInJava
     if type(fistItem[1]) not in (tuple, list, dict):
         values_rawTypeInJava = values_converter(self,fistItem[1], varName )[0]
-        values_elementTypeInJava = _Java_primitive_to_BoxingClass[keys_rawTypeInJava] if values_rawTypeInJava in ('int', 'float', 'double', 'byte') else values_rawTypeInJava    
+        values_elementTypeInJava = _Java_primitive_to_BoxingClass[values_rawTypeInJava] if values_rawTypeInJava in ('int', 'float', 'double', 'byte') else values_rawTypeInJava    
     mapInitString = f'new HashMap(Stream.of(' 
     for entry in  items:
         key_conversion = keys_converter(self, entry[0], varName )
