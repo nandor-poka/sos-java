@@ -159,23 +159,17 @@ class TestDataExchange(NotebookTest):
 
     def test_put_str(self, notebook):
         var_name = 'putStringVar'
-        assert "'ab c d'" == self.put_to_SoS(notebook,var_name, f'String {var_name}= "ab c d"')
-
-    '''
-    def test_get_mixed_list(self, notebook):
-        assert "1.4\nTRUE\n'asd'" == self.get_from_SoS(notebook, '[1.4, True, "asd"]')
-
-    def test_put_mixed_list(self, notebook):
-        # R does not have mixed list, it just convert everything to string.
-        assert "['1.4', 'TRUE', 'asd']" == self.put_to_SoS(notebook, 'c(1.4, TRUE, "asd")')
+        assert "'ab c d'" == self.put_to_SoS(notebook,var_name, f'String {var_name}= "ab c d";')
 
     def test_get_dict(self, notebook):
-        # Python does not have named ordered list, so get dictionary
-        assert "$a\n1\n$b\n2\n$c\n'3'" == self.get_from_SoS(notebook, "dict(a=1, b=2, c='3')")
+        var_name = 'dictVar'
+        assert '{two=2, one=1}' == self.get_from_SoS(notebook, var_name,"dict(one=1, two=2)")
 
-    def test_put_named_list(self, notebook):
-        assert "{'a': 1, 'b': 2, 'c': '3'}" == self.put_to_SoS(notebook, "list(a=1, b=2, c='3')")
-
+    def test_put_dict(self, notebook):
+        var_name = 'putDictVar'
+        assert "{'a': 1, 'b': 2, 'c': 3}" == self.put_to_SoS(notebook, var_name, f'HashMap<String, Integer>{var_name} = new HashMap<String, Integer>();'
+        +f'{var_name}.put("a",1);{var_name}.put("b",2);{var_name}.put("c",3)')
+    '''
     def test_get_set(self, notebook):
         output = self.get_from_SoS(notebook, "{1.5, 'abc'}")
         assert "1.5\n'abc'" == output or "'abc'\n1.5" == output
