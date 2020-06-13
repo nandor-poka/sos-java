@@ -8,7 +8,7 @@ from sos_notebook.test_utils import NotebookTest
 class TestInterface(NotebookTest):
 
     def test_prompt_color(self, notebook):
-        """test color of input and output prompt."""
+        """Test color of input and output prompt."""
         idx = notebook.call(
             '''\
             System.out.println("this is Java");
@@ -38,7 +38,7 @@ class TestInterface(NotebookTest):
             kernel="SoS",
             expect_error=True)
         assert '500' == notebook.check_output('System.out.println(capitalStart)', kernel='Java')
-        
+
     def test_expand(self, notebook):
         """Test %expand --in java."""
         notebook.call('int var = 100;', kernel="Java")
@@ -58,10 +58,10 @@ class TestInterface(NotebookTest):
             int var = 102;
            ''',
             kernel="Java")
-        assert '> var: Integer'in output and '102' in output 
+        assert '> var: Integer'in output and '102' in output
 
     def test_sessioninfo(self, notebook):
-        """test support for %sessioninfo."""
+        """Test support for %sessioninfo."""
         notebook.call('System.out.println("This is Java")', kernel="Java")
         assert 'Java' in notebook.check_output(
             '%sessioninfo', kernel="SoS")
