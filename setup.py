@@ -40,7 +40,7 @@ setup(
     package_dir={'': 'src'},
      package_data={'': ['src/*.json']},
     install_requires=[
-        'sos>=0.21.5', 'sos-notebook>=0.19.4', 
+        'sos>=0.21.5', 'sos-notebook>=0.19.4',
     ],
     entry_points='''
 [sos_languages]

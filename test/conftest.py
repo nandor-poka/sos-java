@@ -13,7 +13,7 @@ from testpath.tempdir import TemporaryDirectory
 import time
 from urllib.parse import urljoin
 
-from selenium.webdriver import Firefox, Remote, Chrome
+from selenium.webdriver import Firefox, Chrome
 from selenium import webdriver
 from sos_notebook.test_utils import Notebook
 
@@ -21,8 +21,9 @@ pjoin = os.path.join
 
 
 def _wait_for_server(proc, info_file_path):
-    """Wait 30 seconds for the notebook server to start"""
-    for i in range(300):
+    """Wait 30 seconds for the notebook server to start."""
+    i=0
+    while i <= 3000:
         if proc.poll() is not None:
             raise RuntimeError("Notebook server failed to start")
         if os.path.exists(info_file_path):
@@ -34,6 +35,7 @@ def _wait_for_server(proc, info_file_path):
                 # get invalid JSON; it should be ready next iteration.
                 pass
         time.sleep(0.1)
+        i+=1
     raise RuntimeError("Didn't find %s in 30 seconds", info_file_path)
 
 

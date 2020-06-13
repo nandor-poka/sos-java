@@ -28,7 +28,7 @@ class TestDataExchange(NotebookTest):
         var_name = 'nullVar'
         result = self.get_from_SoS(notebook, var_name, 'None')
         assert 'null' == result
-    
+
     def test_put_null(self, notebook):
         var_name = 'putnullVar'
         assert 'None' == self.put_to_SoS(notebook, var_name, f'Void {var_name} = null;')
@@ -176,58 +176,3 @@ class TestDataExchange(NotebookTest):
         var_name = 'putSetVar'
         assert '[1, 2, 3, 4, 5]' == self.put_to_SoS(notebook, var_name, f'HashSet<Integer> {var_name} = new HashSet<Integer>();'
         +f'{var_name}.add(1);{var_name}.add(2);{var_name}.add(3);{var_name}.add(4);{var_name}.add(5);')
-    '''
-    def test_put_unnamed_list(self, notebook):
-        output = self.put_to_SoS(notebook, "list(1.5, 'abc')")
-        assert "[1.5, 'abc']" == output or "['abc', 1.5]" == output
-
-    def test_get_complex(self, notebook):
-        assert "1+2.2i" == self.get_from_SoS(notebook, "complex(1, 2.2)")
-
-    def test_put_complex(self, notebook):
-        assert "(1+2.2j)" == self.put_to_SoS(notebook, "complex(real=1, imaginary=2.2)")
-
-    def test_get_recursive(self, notebook):
-        assert "$a\n1\n$b\n$c\n3\n$d\n'whatever'" == self.get_from_SoS(notebook, "{'a': 1, 'b': {'c': 3, 'd': 'whatever'}}")
-
-    def test_put_recursive(self, notebook):
-        assert "{'a': 1, 'b': {'c': 3, 'd': 'whatever'}}" == self.put_to_SoS(notebook, "list(a=1, b=list(c=3, d='whatever'))")
-
-    def test_get_series(self, notebook):
-        notebook.call('import pandas as pd', kernel='SoS')
-        assert "0\n5\n1\n6\n2\n7" == self.get_from_SoS(notebook, 'pd.Series([5 ,6, 7])')
-
-    def test_put_series(self, notebook):
-        output = self.put_to_SoS(notebook, "setNames(c(11, 22, 33), c('a', 'b', 'c'))")
-        assert 'a    11' in output and 'b    22' in output and 'c    33' in output
-
-    def test_get_matrix(self, notebook):
-        notebook.call('import numpy as np', kernel='SoS')
-        assert "0 1\n1 2\n3 4" == self.get_from_SoS(notebook, 'np.matrix([[1,2],[3,4]])')
-
-    def test_put_matrix(self, notebook):
-        output = self.put_to_SoS(notebook, "matrix(c(2, 4, 3, 1, 5, 7), nrow=2)")
-        assert 'array' in output and '[2., 3., 5.]' in output and '[4., 1., 7.]' in output
-
-    def test_get_dataframe(self, notebook):
-        notebook.call('\
-  #          %put df --to R
-  #          import pandas as pd
-  #          import numpy as np
-  #          arr = np.random.randn(1000)
-  #          arr[::10] = np.nan
-  #          df = pd.DataFrame({'column_{0}'.format(i): arr for i in range(10)})
-            ', kernel='SoS')
-        assert '1000' == notebook.check_output('dim(df)[1]', kernel='R')
-        assert '10' == notebook.check_output('dim(df)[2]', kernel='R')
-
-    def test_put_dataframe(self, notebook):
-        notebook.call('%put mtcars', kernel='R')
-        assert '32' == notebook.check_output('mtcars.shape[0]', kernel='SoS')
-        assert '11' == notebook.check_output('mtcars.shape[1]', kernel='SoS')
-        assert "'Mazda RX4'" == notebook.check_output('mtcars.index[0]', kernel='SoS')
-
-    def test_get_dict_with_special_keys(self, notebook):
-        output = self.get_from_SoS(notebook, "{'11111': 1, '_1111': 'a', 11112: 2, (1,2): 3}")
-        assert '$X11111' in output and '$X_1111' in output and '$X11112' in output and '$X_1__2_' in output
-    '''
