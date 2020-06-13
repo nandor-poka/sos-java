@@ -39,7 +39,7 @@ init_statements = f'''
         values = values.substring(0, values.length()-1);
         return values;
     }
-    
+
     public String getJavaArrayValues(byte[] array){
         String values = "";
         for (int i=0;i<array.length;++i){
@@ -66,7 +66,7 @@ init_statements = f'''
         values = values.substring(0, values.length()-1);
         return values;
     }
-    
+
     public String getJavaArrayValues(double[] array){
         String values = "";
         for (int i=0;i<array.length;++i){
@@ -75,7 +75,7 @@ init_statements = f'''
         values = values.substring(0, values.length()-1);
         return values;
     }
-    
+
     public String getJavaArrayValues(long[] array){
         String values = "";
         for (int i=0;i<array.length;++i){
@@ -84,7 +84,7 @@ init_statements = f'''
         values = values.substring(0, values.length()-1);
         return values;
     }
-    
+
     public String getJavaArrayValues(boolean[] array){
         String values = "";
         for (int i=0;i<array.length;++i){
@@ -97,7 +97,7 @@ init_statements = f'''
         values = values.substring(0, values.length()-1);
         return values;
     }
-    
+
     public String getJavaArrayValues(String[] array){
         String values = "";
         for (int i=0;i<array.length;++i){
@@ -106,7 +106,7 @@ init_statements = f'''
         values = values.substring(0, values.length()-1);
         return values;
     }
-    
+
     public <T> String getJavaListTypeValues(List<T> list){
         String elementType = ((Object)list.get(0)).getClass().getSimpleName();
         String values = "";
@@ -131,7 +131,7 @@ init_statements = f'''
                 return values;
             case "Boolean":
                 for (int i=0;i<list.size();++i){
-                    if(Boolean.parseBoolean(list.get(i).toString())){   
+                    if(Boolean.parseBoolean(list.get(i).toString())){
                         values += "True,";
                     }else{
                          values += "False,";
@@ -169,12 +169,11 @@ init_statements = f'''
                 return values;
             case "Boolean":
                 for (int i=0;i<setElementArray.length;++i){
-                    if(Boolean.parseBoolean(setElementArray[i].toString())){   
+                    if(Boolean.parseBoolean(setElementArray[i].toString())){
                         values += "True,";
                     }else{
                          values += "False,";
                     }
-                    
                 }
                 values = values.substring(0, values.length()-1);
                 return values;
@@ -182,7 +181,7 @@ init_statements = f'''
                 return "Unsupported type in list.";
         }
     }
-    
+
     public <T1, T2> String getJavaMapTypeValues(Map<T1,T2> map){
         String values = "";
         String keyType = map.entrySet().iterator().next().getKey().getClass().getSimpleName();
@@ -213,7 +212,7 @@ init_statements = f'''
                     keyValue = "'"+entry.getKey()+"'";
                     break;
                 case "Boolean":
-                    if(Boolean.parseBoolean(entry.getKey().toString())){   
+                    if(Boolean.parseBoolean(entry.getKey().toString())){
                         keyValue = "True,";
                     }else{
                         keyValue = "False,";
@@ -246,7 +245,7 @@ init_statements = f'''
                     valueValue = "'"+entry.getValue()+"'";
                     break;
                 case "Boolean":
-                    if(Boolean.parseBoolean(entry.getValue().toString())){   
+                    if(Boolean.parseBoolean(entry.getValue().toString())){
                         valueValue = "True";
                     }else{
                         valueValue = "False";
@@ -263,7 +262,7 @@ init_statements = f'''
         }
         values = values.substring(0, values.length()-1);
         return values;
-    }  
+    }
 '''
 
 # global variables to be used for Java variable conversion
@@ -291,7 +290,7 @@ def _check_type_homogeneity_in_collection(var_from_sos):
 
 #returns the type (class) of the variable if it exists or none.
 def _check_user_variables(self, varName):
-    response = self.sos_kernel.get_response(f'System.out.println( {varName}==null );', ('stream',), 
+    response = self.sos_kernel.get_response(f'System.out.println( {varName}==null );', ('stream',),
         name=('stdout','stderr') )
     if response != [] and response[0][1]['text'] == 'false':
         return self.sos_kernel.get_response(f'System.out.println( (Object){varName}.getClass().getSimpleName() );', ('stream',),
@@ -304,7 +303,7 @@ def _convert_None_to_Java(self, var_from_sos, varName):
 
 def _convert_Integers_to_Java(self, var_from_sos, varName):
     if var_from_sos < -2**31 or var_from_sos > 2**31-1:
-            return ['long', repr(var_from_sos)+'L']    
+            return ['long', repr(var_from_sos)+'L']
     return ['int', repr(var_from_sos)]
 
 def _convert_bool_to_Java(self, var_from_sos, varName):
@@ -334,7 +333,7 @@ def _convert_tuple_to_Java(self, var_from_sos, varName):
         # Primitive Java numeric types need to be converted to their Boxing type. Eg. int -> Integer.
         rawTypeInJava = converter(self,var_from_sos[0], varName )[0]
         elementTypeInJava = _Java_primitive_to_BoxingClass[rawTypeInJava] if rawTypeInJava in ('int', 'float', 'double', 'byte') else rawTypeInJava
-        setInitString = 'Stream.of('    
+        setInitString = 'Stream.of('
         for element in var_from_sos:
             conversion = converter(self, element, varName )
             elementValue = conversion[1]
@@ -348,7 +347,7 @@ def _convert_tuple_to_Java(self, var_from_sos, varName):
                 print(f'Java does not support collections (eg. Sets, Lists, Maps) with heterogenous types.')
                 return None
         # in this case the original tuple contained other collection(s). Eg tuple of tuples
-        setInitString = 'Stream.of('  
+        setInitString = 'Stream.of('
         for element in var_from_sos:
             conversion = converter(self, element, varName )
             if conversion == None:
@@ -382,7 +381,7 @@ def _convert_dict_to_Java(self, var_from_sos, varName):
         keys_elementTypeInJava = _Java_primitive_to_BoxingClass[keys_rawTypeInJava] if keys_rawTypeInJava in ('int', 'float', 'double', 'byte') else keys_rawTypeInJava
     if type(fistItem[1]) not in (tuple, list, dict):
         values_rawTypeInJava = values_converter(self,fistItem[1], varName )[0]
-        values_elementTypeInJava = _Java_primitive_to_BoxingClass[values_rawTypeInJava] if values_rawTypeInJava in ('int', 'float', 'double', 'byte') else values_rawTypeInJava    
+        values_elementTypeInJava = _Java_primitive_to_BoxingClass[values_rawTypeInJava] if values_rawTypeInJava in ('int', 'float', 'double', 'byte') else values_rawTypeInJava
     mapInitString = f'new HashMap(Stream.of('
     for entry in  items:
         key_conversion = keys_converter(self, entry[0], varName )
@@ -401,7 +400,7 @@ def _convert_list_to_Java(self, var_from_sos, varName):
     # At this point the list is homogenous at the first level of elements, thus the 1st element type applies to all
     converter = _typeToConverterSwitchPythonToJava[str(type(var_from_sos[0])).split("'")[1]]
     rawTypeInJava = converter(self,var_from_sos[0], varName )[0]
-    listInitString = f'new {rawTypeInJava}[]'+'{' 
+    listInitString = f'new {rawTypeInJava}[]'+'{'
     for item in  var_from_sos:
         conversion = converter(self, item, varName )
         itemValue = conversion[1]
@@ -419,7 +418,7 @@ def _convert_list_to_Java_as_ArrayList(self, var_from_sos, varName):
     # Primitive Java numeric types need to be converted to their Boxing type. Eg. int -> Integer.
     rawTypeInJava = converter(self,var_from_sos[0], varName )[0]
     elementTypeInJava = _Java_primitive_to_BoxingClass[rawTypeInJava] if rawTypeInJava in ('int', 'float', 'double', 'byte') else rawTypeInJava
-    listInitString = f'new ArrayList(Stream.of(' 
+    listInitString = f'new ArrayList(Stream.of('
     for item in  var_from_sos:
         conversion = converter(self, item, varName )
         itemValue = conversion[1]
@@ -438,20 +437,20 @@ def _java_array_values(self, javaVar):
     return []
 
 def _java_list_type_values(self, javaVar):
-    return self.sos_kernel.get_response(f'System.out.println( getJavaListTypeValues({javaVar}) );', ('stream',), 
-        name=('stdout','stderr') )[0][1]['text'] 
+    return self.sos_kernel.get_response(f'System.out.println( getJavaListTypeValues({javaVar}) );', ('stream',),
+        name=('stdout','stderr') )[0][1]['text']
 
 def _java_map_type_values(self, javaVar):
     result = self.sos_kernel.get_response(f'System.out.println( getJavaMapTypeValues({javaVar}) );''', ('stream',),
         name=('stdout','stderr') )
     if result != []:
-        return result[0][1]['text'] 
+        return result[0][1]['text']
     self.sos_kernel.warn(f'Failed to get map values for {javaVar}.')
     return {}
 def _java_set_type_values(self, javaVar):
-    return self.sos_kernel.get_response(f'System.out.println( getJavaSetTypeValues({javaVar}) );', ('stream',), 
-        name=('stdout','stderr') )[0][1]['text'] 
-        
+    return self.sos_kernel.get_response(f'System.out.println( getJavaSetTypeValues({javaVar}) );', ('stream',),
+        name=('stdout','stderr') )[0][1]['text']
+
 def _get_java_type_and_value(self, javaVar):
     try:
         javaVarType = self.sos_kernel.get_response('try{System.out.println(((Object)'+f'{javaVar}'+''').getClass().getSimpleName());
@@ -462,7 +461,7 @@ def _get_java_type_and_value(self, javaVar):
         javaVarValue = self.sos_kernel.get_response('try{System.out.println('+f'{javaVar}'+''');
                                                     }catch (NullPointerException e){
                                                         System.out.println("null");
-                                                    }''', ('stream',), 
+                                                    }''', ('stream',),
         name=('stdout', ' stderr') )[0][1]['text']
         return {'type':javaVarType, 'value':javaVarValue}
     except Exception as e:
@@ -501,7 +500,7 @@ def _convert_from_java_to_Python(self, javaVar, as_type):
         return f'{javaVar} = '+'('+f'{_java_set_type_values(self, javaVar)}'+')'
 
 def _convertJavaToJSONString(self, javaVar):
-    return self.sos_kernel.get_response(f'System.out.println( convertJavaObjectToJsonString({javaVar}));', ('stream',), 
+    return self.sos_kernel.get_response(f'System.out.println( convertJavaObjectToJsonString({javaVar}));', ('stream',),
         name=('stdout','stderr') )[0][1]['text']
 
 def _convert_from_java_to_SoS(self, javaVar, as_type):
@@ -563,8 +562,8 @@ _typeToConverterSwitchPythonToJava = {
     'dict': _convert_dict_to_Java,
     'list': _convert_list_to_Java
 }
-"""SoS Java language module."""
 class sos_java:
+    """SoS Java language module."""
     settings = _readSettings()
     background_color = settings["color"] if settings else '#ffaba3'
     allow_overwrite = settings["allowOverwrite"] if settings else False
@@ -574,14 +573,13 @@ class sos_java:
     cd_command = ''
     __version__ = __version__
     java_vars = dict()
-    
-    
+
     def __init__(self, sos_kernel, kernel_name='Java'):
         """Initialization of the SoS Java language module."""
         self.sos_kernel = sos_kernel
         self.kernel_name = 'Java'
         self.init_statements = init_statements
-    
+
     def get_vars(self, names):
         try:
             for name in names:
@@ -589,10 +587,10 @@ class sos_java:
                 changed = False
                 if newname.startswith('_') or newname.startswith('$'):
                     newname = newname[1:]
-                    changed = True 
+                    changed = True
                 if newname[0].isupper():
                     newname = newname[0].lower()+newname[1:]
-                    changed = True 
+                    changed = True
                 if changed:
                     self.sos_kernel.warn(f'Variable "{name}" from SoS to kernel {self.kernel_name} has been renamed to "{newname}" to follow language conventions')
                 converter = _typeToConverterSwitchPythonToJava[str(type(env.sos_dict[name])).split("'")[1]]
@@ -639,7 +637,7 @@ The following exception occured: {e}\n''')
                 self.sos_kernel.warn(f'Exception occurred when transferring `{varName}` from Java to SoS Kernel. {e.__str__()}')
 
             return dictToSos
-            
+
     def expand(self, text, sigil):
         if sigil != '{ }':
             from sos.parser import replace_sigil
@@ -654,17 +652,17 @@ The following exception occured: {e}\n''')
             for exp in javaExpressions:
                 javaResults.append(self.sos_kernel.get_response(
                     f'System.out.println({exp});', ('stream',), name=('stdout', ' stderr') )[0][1]["text"])
-            
+
             for index in range(0, len(javaResults)):
                 text = text.replace('{'+javaExpressions[index]+'}',javaResults[index])
-            
+
             return text
         except Exception:
             err_msg = self.sos_kernel.get_response(
                f'System.out.println({text});', ('stream',), name=('stdout',))[0][1]['text']
             self.sos_kernel.warn(f'Failed to expand "{text}": {err_msg}')
             return text
-    
+
     def preview(self, item):
         javaVarTypeAndValue = _get_java_type_and_value(self,item)
         return (javaVarTypeAndValue["type"], javaVarTypeAndValue["value"])
@@ -672,6 +670,6 @@ The following exception occured: {e}\n''')
     def sessioninfo(self):
         native_java = ''
         for prop in ['java.vm.name','java.runtime.version']:
-            native_java += self.sos_kernel.get_response(f'System.out.println(System.getProperty("{prop}"));', ('stream',), 
+            native_java += self.sos_kernel.get_response(f'System.out.println(System.getProperty("{prop}"));', ('stream',),
             name=('stdout', ' stderr') )[0][1]["text"] +" "
         return [('Native Java', native_java), ("JupyterLab sos-java settings",f'{self.settings}')]
