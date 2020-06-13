@@ -575,8 +575,9 @@ class sos_java:
     __version__ = __version__
     java_vars = dict()
     
-    """Initialization of the SoS Java language module"""
+    
     def __init__(self, sos_kernel, kernel_name='Java'):
+        """Initialization of the SoS Java language module."""
         self.sos_kernel = sos_kernel
         self.kernel_name = 'Java'
         self.init_statements = init_statements
