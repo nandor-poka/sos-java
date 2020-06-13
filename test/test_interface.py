@@ -3,15 +3,12 @@
 # Copyright (c) Dr. Nandor Poka
 # Distributed under the terms of the 3-clause BSD License.
 
-import os
-import tempfile
 from sos_notebook.test_utils import NotebookTest
-import time
 
 class TestInterface(NotebookTest):
 
     def test_prompt_color(self, notebook):
-        '''test color of input and output prompt'''
+        """test color of input and output prompt"""
         idx = notebook.call(
             '''\
             System.out.println("this is Java");
@@ -20,7 +17,7 @@ class TestInterface(NotebookTest):
         assert [255, 171, 163] == notebook.get_output_backgroundColor(idx)
 
     def test_var_name_with_underscore(self, notebook):
-        '''Test  _varName -> varName'''
+        """Test  _varName -> varName"""
         # _varName -> varName
         notebook.call(
             '''\
@@ -32,7 +29,7 @@ class TestInterface(NotebookTest):
         assert '5' == notebook.check_output('System.out.println(varName)', kernel='Java')
 
     def test_var_name_with_captial_letter(self, notebook):
-        '''Test  CapitalStart -> capitalStart'''
+        """Test  CapitalStart -> capitalStart. This test that the variable is renamed to comforn to Java naming conventions"""
         notebook.call(
             '''\
             %put CapitalStart --to java
@@ -43,7 +40,7 @@ class TestInterface(NotebookTest):
         assert '500' == notebook.check_output('System.out.println(capitalStart)', kernel='Java')
         
     def test_expand(self, notebook):
-        '''Test %expand --in java'''
+        """Test %expand --in java"""
         notebook.call('int var = 100;', kernel="Java")
         assert 'value is 102' in notebook.check_output(
             '''\
@@ -54,7 +51,7 @@ class TestInterface(NotebookTest):
 
 
     def test_preview(self, notebook):
-        '''Test support for %preview'''
+        """Test support for %preview"""
         output = notebook.check_output(
             '''\
             %preview -n var
@@ -64,7 +61,7 @@ class TestInterface(NotebookTest):
         assert '> var: Integer'in output and '102' in output 
 
     def test_sessioninfo(self, notebook):
-        '''test support for %sessioninfo'''
+        """test support for %sessioninfo"""
         notebook.call('System.out.println("This is Java")', kernel="Java")
         assert 'Java' in notebook.check_output(
             '%sessioninfo', kernel="SoS")

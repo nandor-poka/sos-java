@@ -80,8 +80,8 @@ def notebook_server():
     # a permission error caused by iPython history.sqlite.
     try:
         temp_dir.cleanup()
-    except:
-        pass
+    except Exception as ex:
+        print(ex)
     # Shut the server down
     requests.post(
         urljoin(info['url'], 'api/shutdown'),

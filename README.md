@@ -14,28 +14,28 @@ new type does not match the old type, the kernel automatically renames the incom
 
 ### Conversion from Python to Java
 
-|           **Python type(s)**                           | **Java type**     |
-| :---                                               | ---:           |
-| `None`      | `Void` with `null` value      |
-| `bool`, `np.bool`     | `boolean` primitive      |
-| `int`, `np.int8`, `np.int16`, `np.int32`, `np.int64` | `int` or `long` prmitive based on value |
-| `float` | `float` primitive, support for `NaN` and +/- `infinity`  |
-| `str`      |`String`      |
-| `tuple`      | `HashSet` *     |
-| `dict`      | `HashMap` *     |
-| `list`      | array of corresponding primitive type (except `String`), eg.: `int[]` *     |
+|           **Python type(s)**                          | **Java type**                                                                |
+| :---                                                  | ---:                                                                      |
+| `None`                                                | `Void` with `null` value                                                  |
+| `bool`, `np.bool`                                     | `boolean` primitive                                                       |
+| `int`, `np.int8`, `np.int16`, `np.int32`, `np.int64`  | `int` or `long` prmitive based on value                                   |
+| `float`                                               | `float` primitive, support for `NaN` and +/- `infinity`                   |
+| `str`                                                 |`String`                                                                   |
+| `tuple`                                               | `HashSet` *                                                               |
+| `dict`                                                | `HashMap` *                                                               |
+| `list`                                                | array of corresponding primitive type (except `String`), eg.: `int[]` *   |
 
 * Due to the limitation of the Java language `dict`, `tuple`, and `list` types are only converted if their elements are of the same type. Eg.a `list` of `["1", 2]` will not be converted.
 
 ### Conversion from Java to Python
 
-|           **Java type(s)**                           | **Python type**     |
-| :---                                               | ---:           |
-| `boolean`, `Boolean` | `bool`  |
-| `Integer`, `Long`, `Double`, `Short`, `Byte` or their primitive types| `int`|
-| `float`   | `float` |
-| `String`  | `str`   |
-| `Map`     | `dict`  |
-| `array`, eg. `int[]`| `list`    |
-| `List`    | `list` |
-| `Set`    | `tuple` |
+|           **Java type(s)**                                            | **Python type**   |
+| :---                                                                  | ---:              |
+| `boolean`, `Boolean`                                                  | `bool`            |
+| `Integer`, `Long`, `Double`, `Short`, `Byte` or their primitive types | `int`             |
+| `float`                                                               | `float`           |
+| `String`                                                              | `str`             |
+| `Map`                                                                 | `dict`            |
+| `array`, eg. `int[]`                                                  | `list`            |
+| `List`                                                                | `list`            |
+| `Set`                                                                 | `tuple`           |

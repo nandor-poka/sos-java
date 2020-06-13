@@ -4,8 +4,6 @@
 # Distributed under the terms of the 3-clause BSD License.
 
 from sos_notebook.test_utils import NotebookTest
-import time
-
 class TestDataExchange(NotebookTest):
 
     def get_from_SoS(self, notebook, var_name, sos_expr):

@@ -1,7 +1,7 @@
 from ._version import __version__
-from sos.utils import short_repr, env
+from sos.utils import env
 import math, os
-import numpy as np
+
 import json
 from pathlib import Path
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
@@ -562,7 +562,8 @@ _typeToConverterSwitchPythonToJava = {
     'tuple': _convert_tuple_to_Java,
     'dict': _convert_dict_to_Java,
     'list': _convert_list_to_Java
-}  
+}
+"""SoS Java language module"""  
 class sos_java:
     settings = _readSettings()
     background_color = settings["color"] if settings else '#ffaba3'
@@ -574,6 +575,7 @@ class sos_java:
     __version__ = __version__
     java_vars = dict()
     
+    """Initialization of the SoS Java language module"""
     def __init__(self, sos_kernel, kernel_name='Java'):
         self.sos_kernel = sos_kernel
         self.kernel_name = 'Java'
