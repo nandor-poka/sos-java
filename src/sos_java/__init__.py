@@ -1,3 +1,4 @@
+"""Initialization code for sos-java."""
 #!/usr/bin/env python3
 #
 # Copyright (c) 2020, Dr. Nandor Poka

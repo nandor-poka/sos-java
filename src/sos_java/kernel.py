@@ -563,7 +563,7 @@ _typeToConverterSwitchPythonToJava = {
     'dict': _convert_dict_to_Java,
     'list': _convert_list_to_Java
 }
-"""SoS Java language module"""  
+"""SoS Java language module."""
 class sos_java:
     settings = _readSettings()
     background_color = settings["color"] if settings else '#ffaba3'
