@@ -294,7 +294,7 @@ def _check_user_variables(self, varName):
     response = self.sos_kernel.get_response(f'System.out.println( {varName}==null );', ('stream',), 
         name=('stdout','stderr') )
     if response != [] and response[0][1]['text'] == 'false':
-        return self.sos_kernel.get_response(f'System.out.println( (Object){varName}.getClass().getSimpleName() );', ('stream',), 
+        return self.sos_kernel.get_response(f'System.out.println( (Object){varName}.getClass().getSimpleName() );', ('stream',),
         name=('stdout','stderr') )[0][1]['text']
     return None
 
@@ -330,7 +330,7 @@ def _convert_tuple_to_Java(self, var_from_sos, varName):
     # At this point the tuple is homogenous at the first level of elements, thus the 1st element type applies to all
     converter = _typeToConverterSwitchPythonToJava[str(type(var_from_sos[0])).split("'")[1]]
     # Non-collection types can be converted directly, this means that the tuple is a tuple of primitives (more generally non collection type)
-    if type(var_from_sos[0])not in (tuple, list, dict):
+    if  not isinstance(var_from_sos[0],(tuple, list, dict)):
         # Primitive Java numeric types need to be converted to their Boxing type. Eg. int -> Integer.
         rawTypeInJava = converter(self,var_from_sos[0], varName )[0]
         elementTypeInJava = _Java_primitive_to_BoxingClass[rawTypeInJava] if rawTypeInJava in ('int', 'float', 'double', 'byte') else rawTypeInJava
@@ -362,7 +362,7 @@ def _convert_tuple_to_Java(self, var_from_sos, varName):
         setInitString += ').collect(Collectors.toCollection(HashSet::new));'
         setInitString = setInitString.replace('<T>',f'<{elementTypeInJava}>')
         return [f'HashSet<{elementTypeInJava}>', setInitString]
-    
+
 def _convert_dict_to_Java(self, var_from_sos, varName):
     if not _check_type_homogeneity_in_collection(var_from_sos.keys()):
         self.sos_kernel.warn(f'Java does not support collections (eg. Sets, Lists, Maps) with heterogenous types. Keys in {varName} are of not the same types.')
@@ -376,14 +376,14 @@ def _convert_dict_to_Java(self, var_from_sos, varName):
     # At this point the map is homogenous at the first level of elements, thus the 1st element type applies to all
     keys_converter = _typeToConverterSwitchPythonToJava[str(type(fistItem[0])).split("'")[1]]
     values_converter = _typeToConverterSwitchPythonToJava[str(type(fistItem[1])).split("'")[1]]
-    if type(fistItem[0]) not in (tuple, list, dict):
+    if not isinstance(fistItem[0], (tuple, list, dict)):
          # Primitive Java numeric types need to be converted to their Boxing type. Eg. int -> Integer.
         keys_rawTypeInJava = keys_converter(self,fistItem[0], varName )[0]
         keys_elementTypeInJava = _Java_primitive_to_BoxingClass[keys_rawTypeInJava] if keys_rawTypeInJava in ('int', 'float', 'double', 'byte') else keys_rawTypeInJava
     if type(fistItem[1]) not in (tuple, list, dict):
         values_rawTypeInJava = values_converter(self,fistItem[1], varName )[0]
         values_elementTypeInJava = _Java_primitive_to_BoxingClass[values_rawTypeInJava] if values_rawTypeInJava in ('int', 'float', 'double', 'byte') else values_rawTypeInJava    
-    mapInitString = f'new HashMap(Stream.of(' 
+    mapInitString = f'new HashMap(Stream.of('
     for entry in  items:
         key_conversion = keys_converter(self, entry[0], varName )
         value_conversion  = values_converter(self, entry[1], varName )
@@ -430,7 +430,7 @@ def _convert_list_to_Java_as_ArrayList(self, var_from_sos, varName):
 
 # Conversions FROM JAVA
 def _java_array_values(self, javaVar):
-    response =  self.sos_kernel.get_response(f'''System.out.println( getJavaArrayValues({javaVar}) );''', ('stream',), 
+    response =  self.sos_kernel.get_response(f'''System.out.println( getJavaArrayValues({javaVar}) );''', ('stream',),
         name=('stdout','stderr') )
     if response != []:
         return response[0][1]['text']
@@ -442,7 +442,7 @@ def _java_list_type_values(self, javaVar):
         name=('stdout','stderr') )[0][1]['text'] 
 
 def _java_map_type_values(self, javaVar):
-    result = self.sos_kernel.get_response(f'System.out.println( getJavaMapTypeValues({javaVar}) );''', ('stream',), 
+    result = self.sos_kernel.get_response(f'System.out.println( getJavaMapTypeValues({javaVar}) );''', ('stream',),
         name=('stdout','stderr') )
     if result != []:
         return result[0][1]['text'] 
@@ -457,7 +457,7 @@ def _get_java_type_and_value(self, javaVar):
         javaVarType = self.sos_kernel.get_response('try{System.out.println(((Object)'+f'{javaVar}'+''').getClass().getSimpleName());
                                                     }catch (NullPointerException e){
                                                         System.out.println("Void");
-                                                    }''', ('stream',), 
+                                                    }''', ('stream',),
         name=('stdout','stderr') )[0][1]['text']
         javaVarValue = self.sos_kernel.get_response('try{System.out.println('+f'{javaVar}'+''');
                                                     }catch (NullPointerException e){
