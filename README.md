@@ -1,5 +1,7 @@
 # sos-java
 
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/9a5f1305d3644d758327235901a5c08d)](https://www.codacy.com/manual/np/sos-java?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=nandor-poka/sos-java&amp;utm_campaign=Badge_Grade)
+
 ## Copyright (c) 2020, Dr. Nandor Poka
 
 ### Distributed under the terms of the 3-clause BSD License
