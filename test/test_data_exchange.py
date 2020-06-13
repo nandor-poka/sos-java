@@ -32,29 +32,27 @@ class TestDataExchange(NotebookTest):
     def test_put_null(self, notebook):
         var_name = 'putnullVar'
         assert 'None' == self.put_to_SoS(notebook, var_name, f'Void {var_name} = null;')
-        
-    
+
     def test_get_numpy_inf(self, notebook):
         var_name = 'infVar'
         notebook.call('import numpy', kernel='SoS')
         assert 'Infinity' == self.get_from_SoS(notebook, var_name, 'numpy.inf')
-    
+
     def test_put_inf(self, notebook):
         var_name = 'putinfVar'
         assert 'inf' == self.put_to_SoS(notebook, var_name, f'double {var_name} = Double.POSITIVE_INFINITY')
-    
+
     def test_get_nan(self, notebook):
         var_name = 'nanVar'
-        assert 'NaN' == self.get_from_SoS(notebook, var_name, 'float("nan")')    
-    
+        assert 'NaN' == self.get_from_SoS(notebook, var_name, 'float("nan")')
+
     def test_put_nan(self, notebook):
         var_name = 'putnanVar'
         assert 'nan' == self.put_to_SoS(notebook, var_name, f'double {var_name} = Double.NaN')
-    
+
     def test_get_int1(self, notebook):
         var_name = 'intVar'
         assert '123' == self.get_from_SoS(notebook, var_name, '123')
-        
 
     def test_get_int2(self, notebook):
         var_name = 'longVar'
@@ -63,7 +61,7 @@ class TestDataExchange(NotebookTest):
     def test_get_int3(self, notebook):
         var_name = 'longVar'
         assert '123456789123456789' == self.get_from_SoS(notebook, var_name, '123456789123456789')
-    
+
     def test_put_int1(self, notebook):
         var_name = 'putintVar'
         assert '123' == self.put_to_SoS(notebook, var_name, f'int {var_name} = 123')
@@ -71,11 +69,11 @@ class TestDataExchange(NotebookTest):
     def test_put_int2(self, notebook):
         var_name = 'putlongVar'
         assert '1234567891234' == self.put_to_SoS(notebook, var_name, f'long {var_name} = 1234567891234L')
-    
+
     def test_put_int3(self, notebook):
         var_name = 'putlongVar'
         assert '123456789123456789' == self.put_to_SoS(notebook, var_name, f'long {var_name} = 123456789123456789L')
-    
+
     def test_get_pos_double1(self, notebook):
         var_name = 'doubleVar'
         assert '1.0E-9' == self.get_from_SoS(notebook, var_name, '1e-09')
@@ -99,11 +97,10 @@ class TestDataExchange(NotebookTest):
     def test_put_double3(self, notebook):
         var_name = 'putoubleVar'
         assert '1e-16' == self.put_to_SoS(notebook, var_name, f'double {var_name} = 1e-16')
-    
+
     def test_get_logic_true(self, notebook):
         var_name = 'boolVar'
         assert 'true' == self.get_from_SoS(notebook, var_name, 'True')
-        
 
     def test_get_logic_false(self, notebook):
         var_name = 'boolVar'
@@ -113,12 +110,10 @@ class TestDataExchange(NotebookTest):
         var_name = 'putBoolVar'
         assert 'True' == self.put_to_SoS(notebook, var_name,f'boolean {var_name} = true;')
 
-
     def test_put_logic_false(self, notebook):
         var_name = 'putBoolVar'
         assert 'False' == self.put_to_SoS(notebook, var_name,f'boolean {var_name} = false;')
-    
-    
+
     def test_get_int_array1(self, notebook):
         var_name = 'intArray'
         assert '[1]' == self.get_from_SoS(notebook, var_name,'[1]')
@@ -138,7 +133,7 @@ class TestDataExchange(NotebookTest):
     def test_get_logic_array1(self, notebook):
         var_name = 'boolArray'
         assert '[true]' == self.get_from_SoS(notebook, var_name, '[True]')
-    
+
     def test_get_logic_array2(self, notebook):
         var_name = 'boolArray'
         assert '[true, false, false, true]' == self.get_from_SoS(notebook, var_name, '[True, False, False, True]')
@@ -150,7 +145,7 @@ class TestDataExchange(NotebookTest):
     def test_put_logic_array2(self, notebook):
         var_name = 'putBoolArray'
         assert '[True, False, True, False]' == self.put_to_SoS(notebook, var_name,  f'boolean[]{var_name}= new boolean[]'+'{true, false, true,false};')
-    
+
     def test_get_str1(self, notebook):
         var_name = 'stringVar'
         assert "ab c d" == self.get_from_SoS(notebook, var_name, "'ab c d'")
@@ -167,11 +162,11 @@ class TestDataExchange(NotebookTest):
         var_name = 'putDictVar'
         assert "{'a': 1, 'b': 2, 'c': 3}" == self.put_to_SoS(notebook, var_name, f'HashMap<String, Integer>{var_name} = new HashMap<String, Integer>();'
         +f'{var_name}.put("a",1);{var_name}.put("b",2);{var_name}.put("c",3)')
-    
+
     def test_get_tuple(self, notebook):
         var_name = 'setVar'
         assert "[1, 2, 3, 4]" == self.get_from_SoS(notebook, var_name, "(1, 2, 3, 4)")
-    
+
     def test_put_set(self, notebook):
         var_name = 'putSetVar'
         assert '[1, 2, 3, 4, 5]' == self.put_to_SoS(notebook, var_name, f'HashSet<Integer> {var_name} = new HashSet<Integer>();'
