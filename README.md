@@ -20,7 +20,7 @@ new type does not match the old type, the kernel automatically renames the incom
 | `bool`, `np.bool`                                     | `boolean` primitive                                                       |
 | `int`, `np.int8`, `np.int16`, `np.int32`, `np.int64`  | `int` or `long` prmitive based on value                                   |
 | `float`                                               | `float` primitive, support for `NaN` and +/- `infinity`                   |
-| `str`                                                 |`String`                                                                   |
+| `str`                                                 | `String`                                                                  |
 | `tuple`                                               | `HashSet` *                                                               |
 | `dict`                                                | `HashMap` *                                                               |
 | `list`                                                | array of corresponding primitive type (except `String`), eg.: `int[]` *   |
